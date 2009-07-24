@@ -1,0 +1,79 @@
+#!/usr/bin/python
+
+# Phase 3 of Hydoscope migration. See Report 4 for details.
+# ./00.02.00-from-00.01.00 [-verbose] "psycopg parameters" timeseriesdir
+
+import os
+import os.path
+import sys
+
+import psycopg
+
+
+def verbose(s):
+    if be_verbose: sys.stderr.write(s)
+
+# Command line
+be_verbose = False
+if len(sys.argv)== 4 and sys.argv[1]=='-verbose':
+    be_verbose=True
+    psycopgparms = sys.argv[2]
+    timeseriesdir = sys.argv[3]
+elif len(sys.argv)== 3:
+    psycopgparms = sys.argv[1]
+    timeseriesdir = sys.argv[2]
+else:
+    raise Exception("Wrong usage")
+
+#
+# Timeseries
+#
+
+db = psycopg.connect(psycopgparms)
+from timeseries import Timeseries
+files = os.listdir(timeseriesdir)
+counter = 0
+total = len(files)
+for timeseries_file in files:
+    counter += 1
+    fp = open(os.path.join(timeseriesdir, timeseries_file))
+    id = int(timeseries_file.split('.')[0])
+    ts = Timeseries(id)
+    verbose("\rWriting timeseries %04d (%04d of %d)... "
+        % (id, counter, total))
+    ts.read(fp)
+    fp.close()
+    ts.write_to_db(db, commit=False)
+verbose("Done.\n")
+db.commit()
+
+# Station images
+
+from django.core.management import setup_environ
+from django.core.files import File
+import settings
+setup_environ(settings)
+from hcore import models
+
+sys.stderr.write('Writing station images... ')
+try:
+    file_type=models.FileType.objects.get(mime_type='image/jpeg')
+except models.FileType.DoesNotExist:
+    file_type=models.FileType(mime_type='image/jpeg')
+    file_type.save()
+cursor = db.cursor()
+cursor.execute("SELECT stationid, stimgdate, stimgdata FROM old_hydro.stimages")
+row = cursor.fetchone()
+while row:
+    (stationid, stimgdate, stimgdata) = row
+    gentity = models.Gentity.objects.get(id=stationid/10000)
+    filename = '/tmp/%d.jpg' % (gentity.id,)
+    f = open(filename, 'w')
+    f.write(stimgdata)
+    f.close
+    gf = models.GentityFile(gentity=gentity, date=stimgdate,
+        file_type=file_type, content=File(open(filename)))
+    gf.save()
+    row = cursor.fetchone()
+sys.stderr.write('Done\n')
+db.close()

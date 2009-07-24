@@ -1,0 +1,204 @@
+#!/usr/bin/perl
+
+=head1 NAME
+
+00.00.00-from-old-version - First phase of hydroscope migration
+
+=head1 SYNOPSIS
+
+C<00.00.00-from-old-version [-verbose] username[/passwd]@database>
+
+=head1 DESCRIPTION
+
+See Report 4, Chapter 3, for a detailed description of this program.
+
+=head1 META
+
+Written by Antonis Christofides, National Technical University of Athens.
+
+Copyright (C) 2004-2009 National Technical University of Athens
+
+=cut
+
+use Carp;
+use DBI;
+use Getopt::Long;
+use Pod::Usage;
+use Term::ReadKey;
+use Ora2Pg;
+use Compress::Zlib;
+use strict;
+use warnings;
+
+my $PROGNAME='00.00.00-from-old-version';
+my $VERSION='0.0.0';
+my $COPYRIGHT='Copyright (C) 2004-2009 National Technical University of Athens; '.
+              'All rights reserved';
+my $DATEFMT="'YYYY-MM-DD\"T\"HH24:MI'"; # Date format for Oracle/Pgsql queries
+my $DATEFMTS="'YYYY-MM-DD\"T\"HH24:MI:SS'"; # Same including second
+
+my $Dbusername;		# Database login
+my $Dbpasswd;		# Database password
+my $Dbname;		    # Database name
+my $Dbh;		    # Database object
+my $Verbose=0;		# True if -verbose specified
+my $Version=0;		# True if -version specified.
+
+sub db_connect {
+  $Dbh=DBI->connect("DBI:Oracle:$Dbname", $Dbusername, $Dbpasswd,
+    { AutoCommit => 0})
+    or croak "Cannot connect to database:\n$DBI::errstr\n";
+}
+
+sub db_disconnect {
+  $Dbh->disconnect;
+}
+
+sub run_db_query {
+  my $query = $_[0];
+  $_[1]=$Dbh->prepare($query)
+    or croak "Cannot prepare SQL statement:\n".$_[0]."\n$DBI::errstr\n";
+  $_[1]->execute
+    or croak "Cannot execute query:\n".$_[0]."\n$DBI::errstr\n";
+}
+
+# Given an SQL select statement, the following function returns an array of hash
+# references containing the results.
+
+sub db_query_to_hash_array {
+  my ($query) = @_;
+  run_db_query($query, my $sth);
+  return $sth->fetchall_arrayref({});
+}
+
+sub verbose {
+    $Verbose and print STDERR @_;
+}
+
+sub bytea_escape {
+    my ($input_string) = @_;
+    my $output_string = '';
+    for(my $i=0; $i<length($input_string);++$i) {
+        my $c = substr($input_string, $i, 1);
+        my $o = ord($c);
+        if($o<32 || $o==39 || $o==92 || $o>=127) {
+            $output_string .= sprintf('\\\\%03o', $o);
+        } else {
+            $output_string .= $c;
+        }
+    }
+    return $output_string;
+}
+    
+sub read_command_line {
+  if(@ARGV==1 && $ARGV[0] eq '-version') {
+    $Version = 1;
+    return;
+  }
+  GetOptions('verbose' => \$Verbose,) or pod2usage;
+  pod2usage 'username[/passwd]@database must be specified'."\n" unless(@ARGV);
+  ($Dbusername, $Dbname) = shift(@ARGV) =~ /([^@]+)@(.+)/;
+  if($Dbusername =~ m#/#) {
+    ($Dbusername, $Dbpasswd) = $Dbusername =~ m#([^/]+)/(.+)#;
+  } else {
+    print STDERR "Password:";
+    ReadMode('noecho');
+    $Dbpasswd = ReadLine(0);
+    print STDERR "\n";
+    chop($Dbpasswd);
+    ReadMode('restore');
+  }
+}
+
+my @object_types = (
+    [ 'tables', 'TABLE'],
+);
+
+# Main part
+
+read_command_line;
+if($Version) {
+  print "This is $PROGNAME $VERSION\n$COPYRIGHT\n";
+  exit;
+}
+verbose("Connecting to database...");
+db_connect;
+verbose(" Done.\n");
+
+my $schema;
+foreach my $object_type (@object_types) {
+    verbose("Exporting $$object_type[0] to $$object_type[0].sql...");
+    $schema = new Ora2Pg (
+        datasource => "DBI:Oracle:$Dbname",
+        user => $Dbusername,
+        password => $Dbpasswd,
+        schema => 'NDBHMI',
+        fkey_deferrable => 1,
+        type => $$object_type[1],
+        gen_user_pwd => 1,
+        keep_pkey_names => 1,
+        debug => 0,
+        pg_numeric_type => 1,
+        nobigint => 1
+    );
+    $schema->export_schema("$$object_type[0].sql");
+    verbose(" Done.\n");
+}
+verbose("Exporting data (except timeseries records) to data.sql...");
+$schema = new Ora2Pg (
+    datasource => "DBI:Oracle:$Dbname",
+    user => $Dbusername,
+    password => $Dbpasswd,
+    schema => 'NDBHMI',
+    exclude => [('RAW_TIMESERIES_FLOAT_DATA',
+        'RAW_TIMESERIES_STRING_DATA', 'PR_TIMESERIES_FLOAT_DATA',
+        'PR_TIMESERIES_STRING_DATA')],
+    defer_fkey => 1,
+    type => 'COPY',
+    debug => 1,
+);
+$schema->export_data('data.sql');
+verbose(" Done.\n");
+verbose("Exporting timeseries records...\n");
+mkdir 'timeseries'; unlink glob('timeseries/*');
+my $timeseries1 = db_query_to_hash_array("SELECT DISTINCT id,'float' AS ttype FROM ndbhmi.raw_timeseries_float_data ORDER BY id");
+my $timeseries2 = db_query_to_hash_array("SELECT DISTINCT id,'string' AS ttype FROM ndbhmi.raw_timeseries_string_data ORDER BY id");
+my @timeseries = (@$timeseries1, @$timeseries2);
+foreach (sort { $$a{ID} <=> $$b{ID} } @timeseries) {
+    my $id = $$_{ID};
+    my $ttype = $$_{TTYPE};
+    verbose("Timeseries $id...");
+    my $sth = $Dbh->prepare(qq#
+        SELECT TO_CHAR(datein, 'YYYY-MM-DD HH24:MI') AS datestr, flag, value, additional
+        FROM ndbhmi.raw_timeseries_${ttype}_data
+        WHERE id=$id
+        ORDER BY datein
+        #) or die $Dbh->errstr;
+    $sth->execute or die $Dbh->errstr;
+    my $i = 0;
+    open OUTPUTFILE, sprintf('>timeseries/%05d.data', $id) or die $!;
+    binmode OUTPUTFILE;
+    my %strtonum = (N=>0, 'NE'=>45, E=>90, SE=>135, S=>180, SW=>225, W=>270, NW=>315,
+                          'EN'=>45,        ES=>135,         WS=>225,         WN=>315);
+    while(my @row = $sth->fetchrow_array) {
+        verbose("\rTimeseries $id; $i records...") if($i%1000==0);
+        ++$i;
+        my ($datestr, $flags, $value, $additional) = @row;
+        $flags = '' unless(defined($flags));
+        $value = '' unless(defined($value));
+        $additional = '' unless(defined($additional));
+        $flags = "$flags $additional" if($additional);
+        if($ttype eq 'string' and $value) {
+            if(defined($strtonum{$value})) { $value=$strtonum{$value}; }
+            else { $value = ''; }
+        }
+        print OUTPUTFILE "$datestr,$value,$flags".chr(13).chr(10) or die $!;
+    }
+    close OUTPUTFILE or die $!;
+    verbose("\n");
+}
+verbose(" Done.\n");
+
+verbose("Disconnecting from database...");
+db_disconnect;
+verbose(" Done.\n");
