@@ -23,101 +23,83 @@ END
 $$ LANGUAGE plpgsql;
 
 /* instruments => InstrumentType */
-INSERT INTO hcore_instrumenttype(id) SELECT instrtype FROM old_hydro.instruments;
-INSERT INTO hcore_instrumenttype_translation(master_id, language_id, descr)
-    SELECT instrtype, 2, instrtpname FROM old_hydro.instruments;
+INSERT INTO hcore_instrumenttype(id, descr, descr_alt)
+    SELECT instrtype, instrtpname, '' FROM old_hydro.instruments;
 
 /* pol_districts => PoliticalDivision */
-INSERT INTO hcore_gentity(id)
-    SELECT 300+pdid FROM old_hydro.pol_districts WHERE pdid>0;
-INSERT INTO hcore_gentity_translation
-    (master_id, language_id, name, short_name, remarks)
-    SELECT 300+pdid, 2, pdname, pdname, '' FROM old_hydro.pol_districts
-    WHERE pdid>0;
+INSERT INTO hcore_gentity(id, name, short_name, remarks, name_alt,
+    short_name_alt, remarks_alt)
+    SELECT 300+pdid, pdname, pdname, '', '', '', ''
+    FROM old_hydro.pol_districts WHERE pdid>0;
 INSERT INTO hcore_garea(gentity_ptr_id)
     SELECT 300+pdid FROM old_hydro.pol_districts WHERE pdid>0;
 INSERT INTO hcore_politicaldivision(garea_ptr_id, parent_id, code)
     SELECT 300+pdid, 84, '' FROM old_hydro.pol_districts WHERE pdid>0;
 
 /* services => Organization */
-INSERT INTO hcore_lentity(id) SELECT srvid FROM old_hydro.services;
-INSERT INTO hcore_lentity_translation(master_id, language_id, remarks)
-    SELECT srvid, 2, '' FROM old_hydro.services;
-INSERT INTO hcore_organization(lentity_ptr_id, name, acronym)
-    SELECT srvid, srvname, srvcodename FROM old_hydro.services;
+INSERT INTO hcore_lentity(id, remarks, remarks_alt)
+    SELECT srvid, '', '' FROM old_hydro.services;
+INSERT INTO hcore_organization(lentity_ptr_id, name, acronym, name_alt,
+    acronym_alt)
+    SELECT srvid, srvname, srvcodename, '', '' FROM old_hydro.services;
 
 /* states => PoliticalDivision */
-INSERT INTO hcore_gentity(id)
-    SELECT 400+sttid FROM old_hydro.states WHERE pdid>0;
-INSERT INTO hcore_gentity_translation
-    (master_id, language_id, name, short_name, remarks)
-    SELECT 400+sttid, 2, sttname, sttcodename, '' FROM old_hydro.states
-    WHERE pdid>0;
+INSERT INTO hcore_gentity(id, name, short_name, remarks, name_alt,
+    short_name_alt, remarks_alt)
+    SELECT 400+sttid, sttname, sttcodename, '', '', '', ''
+    FROM old_hydro.states WHERE pdid>0;
 INSERT INTO hcore_garea(gentity_ptr_id)
     SELECT 400+sttid FROM old_hydro.states WHERE pdid>0;
 INSERT INTO hcore_politicaldivision(garea_ptr_id, parent_id, code)
     SELECT 400+sttid, 300+pdid, '' FROM old_hydro.states WHERE pdid>0;
 
 /* stcategories => StationType */
-INSERT INTO hcore_stationtype(id)
-    SELECT stcatid FROM old_hydro.stcategories WHERE stcatid>0;
-INSERT INTO hcore_stationtype_translation(master_id, language_id, descr)
-    SELECT stcatid, 2, stcatname FROM old_hydro.stcategories WHERE stcatid>0;
+INSERT INTO hcore_stationtype(id, descr, descr_alt)
+    SELECT stcatid, stcatname, '' FROM old_hydro.stcategories WHERE stcatid>0;
 
 /* timesteps => TimeStep */
-INSERT INTO hcore_timestep(id, length_minutes, length_months)
-    SELECT timeresid, minutes, 0 FROM old_hydro.timesteps WHERE minutes>0;
-INSERT INTO hcore_timestep_translation(master_id, language_id, descr)
-    SELECT timeresid, 2, tmrname FROM old_hydro.timesteps WHERE minutes>0;
-INSERT INTO hcore_timestep(id, length_minutes, length_months) VALUES (6, 0, 1);
-INSERT INTO hcore_timestep(id, length_minutes, length_months) VALUES (7, 0, 12);
-INSERT INTO hcore_timestep_translation(master_id, language_id, descr)
-    VALUES (6, 2, 'Μηνιαία');
-INSERT INTO hcore_timestep_translation(master_id, language_id, descr)
-    VALUES (7, 2, 'Ετήσια');
+INSERT INTO hcore_timestep(id, length_minutes, length_months, descr, descr_alt)
+    SELECT timeresid, minutes, 0, tmrname, ''
+    FROM old_hydro.timesteps WHERE minutes>0;
+INSERT INTO hcore_timestep(id, length_minutes, length_months, descr, descr_alt)
+    VALUES (6, 0, 1, 'Μηνιαία', '');
+INSERT INTO hcore_timestep(id, length_minutes, length_months, descr, descr_alt)
+    VALUES (7, 0, 12, 'Ετήσια', '');
 
 /* variables => Variable */
-INSERT INTO hcore_variable(id) SELECT varid FROM old_hydro.variables;
-INSERT INTO hcore_variable_translation(master_id, language_id, descr)
-    SELECT varid, 2, varname FROM old_hydro.variables;
+INSERT INTO hcore_variable(id, descr, descr_alt)
+    SELECT varid, varname, '' FROM old_hydro.variables;
 
 /* water_districts => WaterDivision */
-INSERT INTO hcore_gentity(id)
-    SELECT 500+wtrid FROM old_hydro.water_districts WHERE wtrid>0;
-INSERT INTO hcore_gentity_translation
-    (master_id, language_id, name, short_name, remarks)
-    SELECT 500+wtrid, 2, wtrname, wtrcodename, '' FROM old_hydro.water_districts
-    WHERE wtrid>0;
+INSERT INTO hcore_gentity(id, name, short_name, remarks, name_alt,
+    short_name_alt, remarks_alt)
+    SELECT 500+wtrid, wtrname, wtrcodename, '', '', '', ''
+    FROM old_hydro.water_districts WHERE wtrid>0;
 INSERT INTO hcore_garea(gentity_ptr_id)
     SELECT 500+wtrid FROM old_hydro.water_districts WHERE wtrid>0;
 INSERT INTO hcore_waterdivision(garea_ptr_id)
     SELECT 500+wtrid FROM old_hydro.water_districts WHERE wtrid>0;
 
 /* basins => WaterBasin */
-INSERT INTO hcore_gentity(id)
-    SELECT 1000+wbid FROM old_hydro.basins WHERE wbid>0;
-INSERT INTO hcore_gentity_translation
-    (master_id, language_id, name, short_name, remarks)
-    SELECT 1000+wbid, 2, wbname, '', '' FROM old_hydro.basins
-    WHERE wbid>0;
+INSERT INTO hcore_gentity(id, name, short_name, remarks, name_alt,
+    short_name_alt, remarks_alt)
+    SELECT 1000+wbid, wbname, '', '', '', '', ''
+    FROM old_hydro.basins WHERE wbid>0;
 INSERT INTO hcore_garea(gentity_ptr_id)
     SELECT 1000+wbid FROM old_hydro.basins WHERE wbid>0;
 INSERT INTO hcore_waterbasin(garea_ptr_id, water_division_id)
     SELECT 1000+wbid, CASE WHEN wtrid>0 THEN 500+wtrid ELSE NULL END
     FROM old_hydro.basins WHERE wbid>0;
-INSERT INTO hcore_gentityaltcodetype(id) VALUES (1);
-INSERT INTO hcore_gentityaltcodetype_translation(master_id, language_id, descr)
-    VALUES (1, 2, 'Κωδικός ΥΠΑΝ');
+INSERT INTO hcore_gentityaltcodetype(id, descr, descr_alt)
+    VALUES (1, 'Κωδικός ΥΠΑΝ', '');
 INSERT INTO hcore_gentityaltcode(gentity_id, type_id, value)
     SELECT 1000+wbid, 1, wbcode FROM old_hydro.basins WHERE wbid>0;
 
 /* sub_basins => WaterBasin */
-INSERT INTO hcore_gentity(id)
-    SELECT 1400+wsbid FROM old_hydro.sub_basins WHERE wsbid>0;
-INSERT INTO hcore_gentity_translation
-    (master_id, language_id, name, short_name, remarks)
-    SELECT 1400+wsbid, 2, wsbname, '', '' FROM old_hydro.sub_basins
-    WHERE wsbid>0;
+INSERT INTO hcore_gentity(id, name, short_name, remarks, name_alt,
+    short_name_alt, remarks_alt)
+    SELECT 1400+wsbid, wsbname, '', '', '', '', ''
+    FROM old_hydro.sub_basins WHERE wsbid>0;
 INSERT INTO hcore_garea(gentity_ptr_id)
     SELECT 1400+wsbid FROM old_hydro.sub_basins WHERE wsbid>0;
 INSERT INTO hcore_waterbasin(garea_ptr_id, water_division_id, parent_id)
@@ -129,15 +111,15 @@ INSERT INTO hcore_gentityaltcode(gentity_id, type_id, value)
 
 /* raw_timeseries_info => Timeseries */
 INSERT INTO hcore_timezone (id, code, utc_offset) VALUES (1, 'EET', 120);
-INSERT INTO hcore_unitofmeasurement (id, symbol) VALUES (1, '°');
-INSERT INTO hcore_unitofmeasurement (id, symbol) VALUES (2, 'm/s');
-INSERT INTO hcore_unitofmeasurement (id, symbol) VALUES (3, 'mm');
-INSERT INTO hcore_unitofmeasurement (id, symbol) VALUES (4, '°C');
-INSERT INTO hcore_unitofmeasurement (id, symbol) VALUES (5, 'hPa');
-INSERT INTO hcore_unitofmeasurement (id, symbol) VALUES (6, 'gr/m³');
-INSERT INTO hcore_unitofmeasurement (id, symbol) VALUES (7, '%');
-INSERT INTO hcore_unitofmeasurement (id, symbol) VALUES (8, 'm');
-INSERT INTO hcore_unitofmeasurement (id, symbol) VALUES (9, 'm³/s');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (1, '°', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (2, 'm/s', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (3, 'mm', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (4, '°C', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (5, 'hPa', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (6, 'gr/m³', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (7, '%', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (8, 'm', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (9, 'm³/s', '', '');
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (1, 2);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (2, 5);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (2, 107);
@@ -185,27 +167,23 @@ INSERT INTO hcore_timeseries
     
 /* stationconfig => Instrument */
 INSERT INTO hcore_instrument(id, station_id, type_id, manufacturer, model,
-    is_active, start_date, end_date)
+    is_active, start_date, end_date, name, remarks, name_alt, remarks_alt)
     SELECT stconfigid/100,
     CASE WHEN stationid=5010150001 THEN 501030 ELSE stationid/10000 END,
-    instrtype, '', '', False, instartdate, inenddate
-    FROM old_hydro.stationconfig;
-INSERT INTO hcore_instrument_translation(master_id, language_id, name, remarks)
-    SELECT stconfigid/100, 2, '', COALESCE(notes, '')
+    instrtype, '', '', False, instartdate, inenddate, '', COALESCE(notes, ''),
+    '', ''
     FROM old_hydro.stationconfig;
 
 /* stations => Station */
 INSERT INTO hcore_gentity(id, water_basin_id, water_division_id,
-    political_division_id)
+    political_division_id, name, short_name, remarks, name_alt, short_name_alt,
+    remarks_alt)
     SELECT CASE WHEN stationid=5010150001 THEN 501030 ELSE stationid/10000 END,
     CASE WHEN wbid>0 THEN 1000+wbid ELSE NULL END,
     CASE WHEN wtrid>0 THEN 500+wtrid ELSE NULL END,
-    CASE WHEN sttid>0 THEN 400+sttid ELSE NULL END
+    CASE WHEN sttid>0 THEN 400+sttid ELSE NULL END,
+    stationname, '', COALESCE(comments, ''), '', '', ''
     FROM old_hydro.stations;
-INSERT INTO hcore_gentity_translation
-    (master_id, language_id, name, short_name, remarks)
-    SELECT CASE WHEN stationid=5010150001 THEN 501030 ELSE stationid/10000 END,
-    2, stationname, '', COALESCE(comments, '') FROM old_hydro.stations;
 INSERT INTO hcore_gpoint(gentity_ptr_id, abscissa, ordinate, srid, approximate,
     altitude, asrid)
     SELECT CASE WHEN stationid=5010150001 THEN 501030 ELSE stationid/10000 END,
@@ -238,11 +216,13 @@ INSERT INTO hcore_station(gpoint_ptr_id, owner_id, type_id, is_active,
     FROM old_hydro.stations;
 SELECT update_sequence('hcore_lentity_id_seq', 'hcore_lentity');
 INSERT INTO hcore_person(lentity_ptr_id, last_name, first_name, middle_names,
-    initials)
+    initials, last_name_alt, first_name_alt, middle_names_alt, initials_alt)
     SELECT nextval('hcore_lentity_id_seq'),
-    split_part(observer, ' ', 1), split_part(observer, ' ', 2), '', ''
+    split_part(observer, ' ', 1), split_part(observer, ' ', 2), '', '', '', '',
+    '', ''
     FROM old_hydro.stations WHERE observer<>'';
-INSERT INTO hcore_lentity(id) SELECT lentity_ptr_id FROM hcore_person;
+INSERT INTO hcore_lentity(id, remarks, remarks_alt)
+    SELECT lentity_ptr_id, '', '' FROM hcore_person;
 INSERT INTO hcore_overseer(station_id, person_id, is_current)
     SELECT CASE WHEN s.stationid=5010150001 THEN 501030 ELSE s.stationid/10000 END,
     p.lentity_ptr_id, False
