@@ -164,8 +164,8 @@ $schema->export_data('data.sql');
 verbose(" Done.\n");
 verbose("Exporting timeseries records...\n");
 mkdir 'timeseries'; unlink glob('timeseries/*');
-my $timeseries1 = db_query_to_hash_array("SELECT DISTINCT id,'float' AS ttype FROM ndbhmi.raw_timeseries_float_data ORDER BY id");
-my $timeseries2 = db_query_to_hash_array("SELECT DISTINCT id,'string' AS ttype FROM ndbhmi.raw_timeseries_string_data ORDER BY id");
+my $timeseries1 = db_query_to_hash_array("SELECT DISTINCT id,'float' AS ttype FROM $Dbschema.raw_timeseries_float_data ORDER BY id");
+my $timeseries2 = db_query_to_hash_array("SELECT DISTINCT id,'string' AS ttype FROM $Dbschema.raw_timeseries_string_data ORDER BY id");
 my @timeseries = (@$timeseries1, @$timeseries2);
 foreach (sort { $$a{ID} <=> $$b{ID} } @timeseries) {
     my $id = $$_{ID};
@@ -173,7 +173,7 @@ foreach (sort { $$a{ID} <=> $$b{ID} } @timeseries) {
     verbose("Timeseries $id...");
     my $sth = $Dbh->prepare(qq#
         SELECT TO_CHAR(datein, 'YYYY-MM-DD HH24:MI') AS datestr, flag, value, additional
-        FROM ndbhmi.raw_timeseries_${ttype}_data
+        FROM $Dbschema.raw_timeseries_${ttype}_data
         WHERE id=$id
         ORDER BY datein
         #) or die $Dbh->errstr;
