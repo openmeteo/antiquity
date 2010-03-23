@@ -155,13 +155,15 @@ $schema = new Ora2Pg (
     schema => $Dbschema,
     exclude => [('RAW_TIMESERIES_FLOAT_DATA',
         'RAW_TIMESERIES_STRING_DATA', 'PR_TIMESERIES_FLOAT_DATA',
-        'PR_TIMESERIES_STRING_DATA')],
+        'PR_TIMESERIES_STRING_DATA', 'CLOUD_OBSERVATION', 'CLOUD_OBSERVATION1',
+        'WEATHER_OBSERVATION')],
     defer_fkey => 1,
     type => 'COPY',
     debug => 1,
 );
 $schema->export_data('data.sql');
 verbose(" Done.\n");
+
 verbose("Exporting timeseries records...\n");
 mkdir 'timeseries'; unlink glob('timeseries/*');
 my $timeseries1 = db_query_to_hash_array("SELECT DISTINCT id,'float' AS ttype FROM $Dbschema.raw_timeseries_float_data ORDER BY id");
@@ -196,6 +198,49 @@ foreach (sort { $$a{ID} <=> $$b{ID} } @timeseries) {
             else { $value = ''; }
         }
         print OUTPUTFILE "$datestr,$value,$flags".chr(13).chr(10) or die $!;
+    }
+    close OUTPUTFILE or die $!;
+    verbose("\n");
+}
+verbose(" Done.\n");
+
+verbose("Exporting cloud observations...\n");
+my $cloud_observations = db_query_to_hash_array("SELECT DISTINCT id FROM $Dbschema.cloud_observation ORDER BY id");
+foreach (@$cloud_observations) {
+    my $id = $$_{ID};
+    verbose("Cloud observations $id...");
+    my $sth = $Dbh->prepare(qq#
+        SELECT TO_CHAR(datein, 'YYYY-MM-DD HH24:MI') AS datestr,
+            cloud_type1, cloud_pct1, cloud_height1,
+            cloud_type2, cloud_pct2, cloud_height2,
+            cloud_type3, cloud_pct3, cloud_height3,
+            cloud_type4, cloud_pct4, cloud_height4
+        FROM $Dbschema.cloud_observation
+        WHERE id=$id
+        ORDER BY datein
+        #) or die $Dbh->errstr;
+    $sth->execute or die $Dbh->errstr;
+    my $i = 0;
+    open OUTPUTFILE, sprintf('>cloud_observations/%05d.data', $id) or die $!;
+    binmode OUTPUTFILE;
+    while(my @row = $sth->fetchrow_array) {
+        verbose("\rCloud observations $id; $i records...") if($i%1000==0);
+        ++$i;
+        my (@cloud_type, @cloud_pct, @cloud_height);
+        my $datestr;
+        ($datestr,
+            $cloud_type[0], $cloud_pct[0], $cloud_height[0],
+            $cloud_type[1], $cloud_pct[1], $cloud_height[1],
+            $cloud_type[2], $cloud_pct[2], $cloud_height[2],
+            $cloud_type[3], $cloud_pct[3], $cloud_height[3],) = @row;
+        foreach (@cloud_type) { $_ = '' unless(defined($_)); }
+        foreach (@cloud_pct) { $_ = '' unless(defined($_)); }
+        foreach (@cloud_height) { $_ = '' unless(defined($_)); }
+        my @f;
+        for (my $j = 0; $j <=3; ++$j) {
+            $f[$j] .= "$cloud_type[$j]/$cloud_pct[$j]/$cloud_height[$j]";
+        }
+        print OUTPUTFILE "$datestr,,".join(' ', @f).chr(13).chr(10) or die $!;
     }
     close OUTPUTFILE or die $!;
     verbose("\n");
