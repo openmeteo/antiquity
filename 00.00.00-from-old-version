@@ -6,7 +6,7 @@
 
 =head1 SYNOPSIS
 
-C<00.00.00-from-old-version [-verbose] username[/passwd]@database>
+C<00.00.00-from-old-version [-verbose] [-schema=schema] username[/passwd]@database>
 
 =head1 DESCRIPTION
 
@@ -39,8 +39,9 @@ my $DATEFMTS="'YYYY-MM-DD\"T\"HH24:MI:SS'"; # Same including second
 
 my $Dbusername;		# Database login
 my $Dbpasswd;		# Database password
-my $Dbname;		    # Database name
-my $Dbh;		    # Database object
+my $Dbschema = 'NDBHMI';# Database schema
+my $Dbname;             # Database name
+my $Dbh;                # Database object
 my $Verbose=0;		# True if -verbose specified
 my $Version=0;		# True if -version specified.
 
@@ -95,7 +96,9 @@ sub read_command_line {
     $Version = 1;
     return;
   }
-  GetOptions('verbose' => \$Verbose,) or pod2usage;
+  my $s;
+  GetOptions('verbose' => \$Verbose, 'schema:s' => \$s) or pod2usage;
+  $Dbschema = $s if ($s);
   pod2usage 'username[/passwd]@database must be specified'."\n" unless(@ARGV);
   ($Dbusername, $Dbname) = shift(@ARGV) =~ /([^@]+)@(.+)/;
   if($Dbusername =~ m#/#) {
@@ -132,7 +135,7 @@ foreach my $object_type (@object_types) {
         datasource => "DBI:Oracle:$Dbname",
         user => $Dbusername,
         password => $Dbpasswd,
-        schema => 'NDBHMI',
+        schema => $Dbschema,
         fkey_deferrable => 1,
         type => $$object_type[1],
         gen_user_pwd => 1,
@@ -149,7 +152,7 @@ $schema = new Ora2Pg (
     datasource => "DBI:Oracle:$Dbname",
     user => $Dbusername,
     password => $Dbpasswd,
-    schema => 'NDBHMI',
+    schema => $Dbschema,
     exclude => [('RAW_TIMESERIES_FLOAT_DATA',
         'RAW_TIMESERIES_STRING_DATA', 'PR_TIMESERIES_FLOAT_DATA',
         'PR_TIMESERIES_STRING_DATA')],
