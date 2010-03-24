@@ -247,6 +247,36 @@ foreach (@$cloud_observations) {
 }
 verbose(" Done.\n");
 
+verbose("Exporting weather observations...\n");
+my $weather_observations = db_query_to_hash_array("SELECT DISTINCT id FROM $Dbschema.weather_observation ORDER BY id");
+foreach (@$weather_observations) {
+    my $id = $$_{ID};
+    verbose("Weather observations $id...");
+    my $sth = $Dbh->prepare(qq#
+        SELECT TO_CHAR(datein, 'YYYY-MM-DD HH24:MI') AS datestr,
+            current_weather, past_weather1, past_weather2
+        FROM $Dbschema.weather_observation
+        WHERE id=$id
+        ORDER BY datein
+        #) or die $Dbh->errstr;
+    $sth->execute or die $Dbh->errstr;
+    my $i = 0;
+    open OUTPUTFILE, sprintf('>weather_observations/%05d.data', $id) or die $!;
+    binmode OUTPUTFILE;
+    while(my @row = $sth->fetchrow_array) {
+        verbose("\rWeather observations $id; $i records...") if($i%1000==0);
+        ++$i;
+        my ($datestr, $current_weather, $past_weather1, $past_weather2) = @row;
+        $current_weather = '' unless(defined($current_weather));
+        $past_weather1 = '' unless(defined($past_weather1));
+        $past_weather2 = '' unless(defined($past_weather2));
+        print OUTPUTFILE "$datestr,,$current_weather/$past_weather1/$past_weather2".chr(13).chr(10) or die $!;
+    }
+    close OUTPUTFILE or die $!;
+    verbose("\n");
+}
+verbose(" Done.\n");
+
 verbose("Disconnecting from database...");
 db_disconnect;
 verbose(" Done.\n");
