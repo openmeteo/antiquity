@@ -111,59 +111,92 @@ INSERT INTO hcore_gentityaltcode(gentity_id, type_id, value)
 
 /* raw_timeseries_info => Timeseries */
 INSERT INTO hcore_timezone (id, code, utc_offset) VALUES (1, 'EET', 120);
-INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (1, '°', '', '');
-INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (2, 'm/s', '', '');
-INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (3, 'mm', '', '');
-INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (4, '°C', '', '');
-INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (5, 'hPa', '', '');
-INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (6, 'gr/m³', '', '');
-INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (7, '%', '', '');
-INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (8, 'm', '', '');
-INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (9, 'm³/s', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (1,  '°', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (2,  'm/s', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (3,  'mm', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (4,  '°C', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (5,  'hPa', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (6,  'gr/m³', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (7,  '%', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (8,  'm', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (9,  'm³/s', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (10, 'beaufort', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (11, 'min', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (12, 'n/a', '', 'not applicable');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (13, 'cm', '', '');
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt) VALUES (14, 'unknown', '', '');
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (1, 2);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (2, 4);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (2, 5);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (2, 107);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 7);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 8);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 12);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 13);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 14);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 52);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 54);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 106);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 10);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 18);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 19);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 20);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 21);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 22);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 23);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 24);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 25);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 26);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 28);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 29);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 30);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 31);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 32);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 34);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 35);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 37);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 39);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (5, 44);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (5, 46);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (6, 48);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (7, 50);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (8, 88);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (8, 103);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (9, 101);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (10, 1);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (11, 9);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (11, 16);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (12, 11);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (12, 17);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (12, 40);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (12, 41);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (12, 108);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (12, 109);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (12, 110);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (13, 53);
+/* FIXME: Can't understand visibility units 42, 43 */
+/* FIXME: Can't understand units for 45 ΠΙΕΣΗ (ΒΑΡΟΜΕΤΡΟ ΣΤΑΘΕΡΑ) and 47 ΠΙΕΣΗ (ΣΤΑΘΕΡΑ ΒΑΡΟΜ.) */
+/* FIXME: Can't understand units for radiation 62 */
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (14, 42);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (14, 43);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (14, 45);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (14, 47);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (14, 62);
 INSERT INTO hcore_timeseries
     (id, gentity_id, variable_id, unit_of_measurement_id, precision, name,
     time_zone_id, remarks, instrument_id, time_step_id, nominal_offset_minutes,
     nominal_offset_months, actual_offset_minutes, actual_offset_months)
-    SELECT id, 
+    SELECT r.id, 
     CASE WHEN geoinfoid=5010150001 THEN 501030 ELSE geoinfoid/10000 END,
     varid,
-    CASE WHEN varid=2 THEN 1
-         WHEN varid IN (5, 107) THEN 2
-         WHEN varid IN (7, 8, 12, 14, 52, 54) THEN 3
-         WHEN varid IN (18, 21, 31, 32, 34, 35) THEN 4
-         WHEN varid=44 THEN 5
-         WHEN varid=48 THEN 6
-         WHEN varid=50 THEN 7
-         WHEN varid IN (88,103) THEN 8
-         WHEN varid=101 THEN 9
-         ELSE NULL END,
+    unitofmeasurement_id,
     NULL, '', 1, COALESCE(comments, ''), instrid/100,
     CASE WHEN timeresid BETWEEN 1 AND 7 THEN timeresid ELSE NULL END,
     NULL, NULL,
     CASE WHEN timeresid BETWEEN 1 AND 7 THEN 0 ELSE NULL END,
     CASE WHEN timeresid BETWEEN 1 AND 7 THEN 0 ELSE NULL END
-    FROM old_hydro.raw_timeseries_info;
+    FROM old_hydro.raw_timeseries_info r
+    LEFT JOIN hcore_unitofmeasurement_variables uv ON uv.variable_id=r.varid;
     
 /* stationconfig => Instrument */
 INSERT INTO hcore_instrument(id, station_id, type_id, manufacturer, model,
@@ -172,7 +205,9 @@ INSERT INTO hcore_instrument(id, station_id, type_id, manufacturer, model,
     CASE WHEN stationid=5010150001 THEN 501030 ELSE stationid/10000 END,
     instrtype, '', '', False, instartdate, inenddate, '', COALESCE(notes, ''),
     '', ''
-    FROM old_hydro.stationconfig;
+    FROM old_hydro.stationconfig
+    WHERE stationid IN
+        (SELECT stationid FROM old_hydro.stations WHERE srvid = :service_id);
 
 /* stations => Station */
 INSERT INTO hcore_gentity(id, water_basin_id, water_division_id,
@@ -183,12 +218,12 @@ INSERT INTO hcore_gentity(id, water_basin_id, water_division_id,
     CASE WHEN wtrid>0 THEN 500+wtrid ELSE NULL END,
     CASE WHEN sttid>0 THEN 400+sttid ELSE NULL END,
     stationname, '', COALESCE(comments, ''), '', '', ''
-    FROM old_hydro.stations;
+    FROM old_hydro.stations WHERE srvid = :service_id;
 INSERT INTO hcore_gpoint(gentity_ptr_id, abscissa, ordinate, srid, approximate,
     altitude, asrid)
     SELECT CASE WHEN stationid=5010150001 THEN 501030 ELSE stationid/10000 END,
     x, y, 2100, False, altitude, NULL
-    FROM old_hydro.stations WHERE x<>0;
+    FROM old_hydro.stations WHERE srvid = :service_id AND x<>0;
 INSERT INTO hcore_gpoint(gentity_ptr_id, abscissa, ordinate, srid, approximate,
     altitude, asrid)
     SELECT CASE WHEN stationid=5010150001 THEN 501030 ELSE stationid/10000 END,
@@ -200,34 +235,34 @@ INSERT INTO hcore_gpoint(gentity_ptr_id, abscissa, ordinate, srid, approximate,
         + CASE WHEN char_length(trim(' ' from lamda))>8 THEN to_number(lamda, '         99')/360000 ELSE 0 END,
     7030, False, altitude, NULL
     FROM old_hydro.stations
-    WHERE (x=0 OR x is null) AND phi<>'' AND phi<>'00 00 00';
+    WHERE srvid = :service_id AND (x=0 OR x is null) AND phi<>'' AND phi<>'00 00 00';
 INSERT INTO hcore_gpoint(gentity_ptr_id, abscissa, ordinate, srid, approximate,
     altitude, asrid)
     SELECT CASE WHEN stationid=5010150001 THEN 501030 ELSE stationid/10000 END,
     NULL, NULL, NULL, False, altitude, NULL
     FROM old_hydro.stations
-    WHERE (x=0 OR x is null) AND (phi='' OR phi='00 00 00' OR phi IS NULL);
+    WHERE srvid = :service_id AND (x=0 OR x is null) AND (phi='' OR phi='00 00 00' OR phi IS NULL);
 INSERT INTO hcore_station(gpoint_ptr_id, owner_id, type_id, is_active,
     is_automatic, start_date, end_date)
     SELECT CASE WHEN stationid=5010150001 THEN 501030 ELSE stationid/10000 END,
     srvid, CASE WHEN stcatid>0 THEN stcatid ELSE 1 END,
     CASE WHEN st_isactiv=1 THEN True ELSE False END, False,
     startdate, enddate
-    FROM old_hydro.stations;
+    FROM old_hydro.stations WHERE srvid = :service_id;
 SELECT update_sequence('hcore_lentity_id_seq', 'hcore_lentity');
 INSERT INTO hcore_person(lentity_ptr_id, last_name, first_name, middle_names,
     initials, last_name_alt, first_name_alt, middle_names_alt, initials_alt)
     SELECT nextval('hcore_lentity_id_seq'),
     split_part(observer, ' ', 1), split_part(observer, ' ', 2), '', '', '', '',
     '', ''
-    FROM old_hydro.stations WHERE observer<>'';
+    FROM old_hydro.stations WHERE srvid = :service_id AND observer<>'';
 INSERT INTO hcore_lentity(id, remarks, remarks_alt)
     SELECT lentity_ptr_id, '', '' FROM hcore_person;
 INSERT INTO hcore_overseer(station_id, person_id, is_current)
     SELECT CASE WHEN s.stationid=5010150001 THEN 501030 ELSE s.stationid/10000 END,
     p.lentity_ptr_id, False
     FROM old_hydro.stations s, hcore_person p
-    WHERE split_part(s.observer, ' ', 1)=p.last_name
+    WHERE srvid = :service_id AND split_part(s.observer, ' ', 1)=p.last_name
       AND split_part(s.observer, ' ', 2)=p.first_name;
 
 /* Update sequences */
