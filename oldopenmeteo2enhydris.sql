@@ -201,6 +201,10 @@ INSERT INTO hcore_timeseries
         (t.tstep_unit=1 AND st.length_minutes=t.length AND st.length_months=0) OR
         (t.tstep_unit=2 AND st.length_minutes=0 AND st.length_months=t.length);
 
+/* timeseries data */
+INSERT INTO ts_records (id, top, middle, bottom)
+    SELECT id, COALESCE(top, ''), middle, bottom FROM old_openmeteo.timeseries_records;
+
 /* Update sequences */
 SELECT update_sequence('hcore_instrumenttype_id_seq', 'hcore_instrumenttype');
 SELECT update_sequence('hcore_gentity_id_seq', 'hcore_gentity');
