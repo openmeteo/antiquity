@@ -41,8 +41,49 @@ How to do it:
 
 6. Run this script (as the database user as which enhydris connects):
 
-       BEGIN;
-       \i openmeteo2enhydris.sql
-       COMMIT;
+       \i oldopenmeteo2enhydris.sql
 
 */
+
+\set ON_ERROR_STOP
+BEGIN TRANSACTION;
+SET CONSTRAINTS ALL DEFERRED;
+
+/* Temporary function */
+CREATE FUNCTION update_sequence (sequence_name TEXT, table_name TEXT)
+RETURNS void AS $$
+DECLARE
+    nextid INTEGER;
+BEGIN
+    EXECUTE 'SELECT coalesce(max(id), 0)+1 FROM '||table_name
+                                                            INTO STRICT nextid;
+    EXECUTE 'ALTER SEQUENCE '||sequence_name||' RESTART WITH '||nextid;
+END
+$$ LANGUAGE plpgsql;
+
+/* Countries => PoliticalDivision */
+/* descr has a value of up to 245, so let's use it as the gentity id. */
+INSERT INTO hcore_gentity(id, name, short_name, remarks, name_alt,
+    short_name_alt, remarks_alt)
+    SELECT descr, descr_en, descr_en, '', '', '', ''
+    FROM old_openmeteo.vcountries;
+INSERT INTO hcore_garea(gentity_ptr_id)
+    SELECT descr FROM old_openmeteo.vcountries;
+INSERT INTO hcore_politicaldivision(garea_ptr_id, parent_id, code)
+    SELECT descr, NULL, lower(code) FROM old_openmeteo.vcountries;
+
+
+/* Update sequences */
+SELECT update_sequence('hcore_instrumenttype_id_seq', 'hcore_instrumenttype');
+SELECT update_sequence('hcore_gentity_id_seq', 'hcore_gentity');
+SELECT update_sequence('hcore_lentity_id_seq', 'hcore_lentity');
+SELECT update_sequence('hcore_stationtype_id_seq', 'hcore_stationtype');
+SELECT update_sequence('hcore_timestep_id_seq', 'hcore_timestep');
+SELECT update_sequence('hcore_variable_id_seq', 'hcore_variable');
+SELECT update_sequence('hcore_timezone_id_seq', 'hcore_timezone');
+SELECT update_sequence('hcore_unitofmeasurement_id_seq', 'hcore_unitofmeasurement');
+SELECT update_sequence('hcore_timeseries_id_seq', 'hcore_timeseries');
+SELECT update_sequence('hcore_instrument_id_seq', 'hcore_instrument');
+DROP FUNCTION update_sequence (sequence_name TEXT, table_name TEXT);
+
+ROLLBACK;
