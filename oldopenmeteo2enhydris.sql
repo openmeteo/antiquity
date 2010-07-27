@@ -148,6 +148,30 @@ INSERT INTO hcore_instrument(id, station_id, type_id, manufacturer, model,
     '', '', instrument_active, NULL, NULL, name_en, '', '', ''
     FROM old_openmeteo.vinstruments;
 
+/* munits => UnitOfMeasurement */
+INSERT INTO hcore_unitofmeasurement (id, symbol, descr, descr_alt)
+    SELECT id, symbol, name_en, '' FROM old_openmeteo.vmunits;
+
+/* vars => Variable */
+INSERT INTO hcore_variable(id, descr, descr_alt)
+    SELECT id, descr_en, '' FROM old_openmeteo.vvars;
+
+/* variables to units correspondence made manually, as old openmeteo didn't
+ * have it.
+ */
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (1, 1);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (2, 2);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 3);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 4);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 10);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (5, 5);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (6, 6);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (7, 6);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (8, 7);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (9, 8);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (10, 4);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (10, 10);
+ 
 /* Update sequences */
 SELECT update_sequence('hcore_instrumenttype_id_seq', 'hcore_instrumenttype');
 SELECT update_sequence('hcore_gentity_id_seq', 'hcore_gentity');
