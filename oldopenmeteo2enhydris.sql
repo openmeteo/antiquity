@@ -218,4 +218,4 @@ SELECT update_sequence('hcore_timeseries_id_seq', 'hcore_timeseries');
 SELECT update_sequence('hcore_instrument_id_seq', 'hcore_instrument');
 DROP FUNCTION update_sequence (sequence_name TEXT, table_name TEXT);
 
-ROLLBACK;
+COMMIT;
