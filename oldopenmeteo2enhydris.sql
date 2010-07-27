@@ -163,6 +163,7 @@ INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (2, 2);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 3);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 4);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 9);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 10);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (5, 5);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (6, 6);
@@ -170,8 +171,36 @@ INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (8, 7);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (9, 8);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (10, 4);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (10, 9);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (10, 10);
  
+/* timeseries => Timeseries */
+/* Note: we lose tinterval_type because the enhydris doesn't have it
+ * (https://openmeteo.org/code/ticket/4)
+ */
+INSERT INTO hcore_timezone (id, code, utc_offset) VALUES (1, 'EET', 120);
+INSERT INTO hcore_timestep (id, descr, descr_alt, length_minutes, length_months)
+    VALUES (1, '10-minute', '', 10, 0);
+INSERT INTO hcore_timestep (id, descr, descr_alt, length_minutes, length_months)
+    VALUES (2, 'Hourly', '', 60, 0);
+INSERT INTO hcore_timestep (id, descr, descr_alt, length_minutes, length_months)
+    VALUES (3, 'Daily', '', 1440, 0);
+INSERT INTO hcore_timestep (id, descr, descr_alt, length_minutes, length_months)
+    VALUES (4, 'Monthly', '', 0, 1);
+INSERT INTO hcore_timestep (id, descr, descr_alt, length_minutes, length_months)
+    VALUES (5, 'Annual', '', 0, 12);
+INSERT INTO hcore_timeseries
+    (id, gentity_id, variable_id, unit_of_measurement_id, precision, name,
+    time_zone_id, remarks, instrument_id, time_step_id, nominal_offset_minutes,
+    nominal_offset_months, actual_offset_minutes, actual_offset_months)
+    SELECT t.id, t.gentity, t.var, t.munit, t.precision, t.name_en, 1,
+    t.remarks_en, t.instrument, st.id, CASE WHEN t.strict THEN 0 ELSE NULL END,
+    CASE WHEN t.strict THEN 0 ELSE NULL END, 0, 0
+    FROM old_openmeteo.vtimeseries t
+    LEFT JOIN hcore_timestep st ON 
+        (t.tstep_unit=1 AND st.length_minutes=t.length AND st.length_months=0) OR
+        (t.tstep_unit=2 AND st.length_minutes=0 AND st.length_months=t.length);
+
 /* Update sequences */
 SELECT update_sequence('hcore_instrumenttype_id_seq', 'hcore_instrumenttype');
 SELECT update_sequence('hcore_gentity_id_seq', 'hcore_gentity');
