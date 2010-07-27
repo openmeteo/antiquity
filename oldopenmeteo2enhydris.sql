@@ -116,6 +116,19 @@ INSERT INTO hcore_station(gpoint_ptr_id, owner_id, type_id, is_active,
     SELECT id, owner, stype, station_active, telemetry, NULL, NULL
     FROM old_openmeteo.vstations;
 
+/* Manually create InstrumentType, as old openmeteo does not have equivalent. */
+INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES( 1, 'Rainfall sensor', '');
+INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES( 2, 'Solar radiation sensor', '');
+INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES( 3, 'Sunshine duration sensor', '');
+INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES( 4, 'Air temperature sensor', '');
+INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES( 5, 'Humidity sensor', '');
+INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES( 6, 'Wind velocity sensor', '');
+INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES( 7, 'Wind direction sensor', '');
+INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES( 8, 'Wind velocity and direction sensor', '');
+INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES( 9, 'Battery sensor', '');
+INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES(10, 'Evaporation sensor', '');
+INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES(11, 'Air pressure sensor', '');
+
 /* Update sequences */
 SELECT update_sequence('hcore_instrumenttype_id_seq', 'hcore_instrumenttype');
 SELECT update_sequence('hcore_gentity_id_seq', 'hcore_gentity');
