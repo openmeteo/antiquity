@@ -2,7 +2,15 @@
 
 Script to migrate from the old openmeteo (c. 2005) to enhydris. Very few
 installations of old openmeteo are known to exist, so you are unlikely to need
-this. But I had to migrate one, so I made it. A. Christofides, 2010-06.
+this. But I had to migrate one, so I made it.
+
+Note that the script does not do a migration that is correct in all cases, but
+only a migration appropriate for the one installation that I had to migrate.
+So some object types might not be migrated (because that installation does not
+have them), and some peculiarities of that installation are hardwired in the
+migration script.
+
+A. Christofides, 2010-06.
 
 How to do it:
 
@@ -61,17 +69,40 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
-/* Countries => PoliticalDivision */
-/* descr has a value of up to 245, so let's use it as the gentity id. */
+/* Countries => PoliticalDivision 
+ * descr has a value of up to 245, so let's use 100 plus that as the gentity
+ * id. This is in order to leave the first few ids free for stations (so that
+ * they keep the same id as in the old database, as they are only 11.
+ */
 INSERT INTO hcore_gentity(id, name, short_name, remarks, name_alt,
     short_name_alt, remarks_alt)
-    SELECT descr, descr_en, descr_en, '', '', '', ''
+    SELECT 100+descr, descr_en, descr_en, '', '', '', ''
     FROM old_openmeteo.vcountries;
 INSERT INTO hcore_garea(gentity_ptr_id)
-    SELECT descr FROM old_openmeteo.vcountries;
+    SELECT 100+descr FROM old_openmeteo.vcountries;
 INSERT INTO hcore_politicaldivision(garea_ptr_id, parent_id, code)
-    SELECT descr, NULL, lower(code) FROM old_openmeteo.vcountries;
+    SELECT 100+descr, NULL, lower(code) FROM old_openmeteo.vcountries;
 
+/* Stations => Station 
+ * We put the location description in remarks, because we don't have a location
+ * description field.
+ */
+INSERT INTO hcore_gentity(id, water_basin_id, water_division_id,
+    political_division_id, name, short_name, remarks, name_alt, short_name_alt,
+    remarks_alt)
+    SELECT s.id, NULL, NULL, 187, g.string, g.string, s.address_en, s.name_en,
+    s.name_en, ''
+    FROM old_openmeteo.vstations s
+    LEFT JOIN old_openmeteo.string_contents g ON g.language='gr'
+                                                            AND g.id=s.name;
+INSERT INTO hcore_gpoint(gentity_ptr_id, abscissa, ordinate, srid, approximate,
+    altitude, asrid)
+    SELECT id, x, y, 2100, False, altitude, NULL
+    FROM old_openmeteo.vstations;
+INSERT INTO hcore_station(gpoint_ptr_id, owner_id, type_id, is_active,
+    is_automatic, start_date, end_date)
+    SELECT id, owner, stype, station_active, telemetry, NULL, NULL
+    FROM old_openmeteo.vstations;
 
 /* Update sequences */
 SELECT update_sequence('hcore_instrumenttype_id_seq', 'hcore_instrumenttype');
