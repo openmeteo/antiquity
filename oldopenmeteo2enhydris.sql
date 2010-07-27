@@ -83,6 +83,18 @@ INSERT INTO hcore_garea(gentity_ptr_id)
 INSERT INTO hcore_politicaldivision(garea_ptr_id, parent_id, code)
     SELECT 100+descr, NULL, lower(code) FROM old_openmeteo.vcountries;
 
+/* People => Person */
+INSERT INTO hcore_lentity(id, remarks, remarks_alt)
+    SELECT id, '', '' FROM old_openmeteo.vpeople;
+INSERT INTO hcore_person(lentity_ptr_id, last_name, first_name, middle_names,
+    initials, last_name_alt, first_name_alt, middle_names_alt, initials_alt)
+    SELECT id, last_name_en, first_names_en, '', '', '', '', '', ''
+    FROM old_openmeteo.vpeople;
+
+/* stypes => StationType */
+INSERT INTO hcore_stationtype(id, descr, descr_alt)
+    SELECT id, descr_en, '' FROM old_openmeteo.vstypes;
+
 /* Stations => Station 
  * We put the location description in remarks, because we don't have a location
  * description field.
