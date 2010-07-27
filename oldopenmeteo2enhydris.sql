@@ -129,6 +129,25 @@ INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES( 9, 'Battery senso
 INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES(10, 'Evaporation sensor', '');
 INSERT INTO hcore_instrumenttype(id, descr, descr_alt) VALUES(11, 'Air pressure sensor', '');
 
+/* instruments => Instrument */
+INSERT INTO hcore_instrument(id, station_id, type_id, manufacturer, model,
+    is_active, start_date, end_date, name, remarks, name_alt, remarks_alt)
+    SELECT id, station,
+    CASE WHEN id IN (6, 14, 24, 43, 53, 63, 73, 85, 95, 105) THEN 5
+         WHEN id IN (5, 13, 23, 42, 52, 62, 72, 84, 94, 104) THEN 4
+         WHEN id IN (10, 20, 30, 49, 59, 69, 81, 91, 101, 111) THEN 9
+         WHEN id=79 THEN 10
+         WHEN id IN (9, 18, 28, 47, 57, 67, 89, 99, 109, 77, 3, 17, 27, 46, 56, 66, 88, 98, 108) THEN 2
+         WHEN id=80 THEN 11
+         WHEN id IN (1, 11, 21, 40, 50, 60, 70, 82, 92, 102, 71, 2, 12, 22, 41, 51, 83, 93, 103, 61) THEN 1
+         WHEN id IN (4, 19, 29, 48, 58, 68, 78, 90, 100, 110) THEN 3
+         WHEN id IN (8, 16, 26, 45, 55, 65, 87, 97, 107, 75) THEN 7
+         WHEN id=76 THEN 8
+         WHEN id IN (7, 15, 25, 44, 54, 64, 86, 96, 106, 74) THEN 6
+         END,
+    '', '', instrument_active, NULL, NULL, name_en, '', '', ''
+    FROM old_openmeteo.vinstruments;
+
 /* Update sequences */
 SELECT update_sequence('hcore_instrumenttype_id_seq', 'hcore_instrumenttype');
 SELECT update_sequence('hcore_gentity_id_seq', 'hcore_gentity');
