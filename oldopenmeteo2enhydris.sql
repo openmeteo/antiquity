@@ -198,8 +198,8 @@ INSERT INTO hcore_timeseries
     SELECT t.id, t.gentity, t.var, t.munit, t.precision, t.name_en, 1,
     t.remarks_en, t.instrument, st.id, CASE WHEN t.strict THEN 0 ELSE NULL END,
     CASE WHEN t.strict THEN 0 ELSE NULL END,
-    CASE WHEN st.length_months>0 THEN -60 ELSE 0,/* Hardwire 1 month, -1 hours actual offset in */
-    CASE WHEN st.length_months>0 THEN 1 ELSE 0   /* monthly and annual timeseries; see ticket #143 */
+    CASE WHEN st.length_months>0 THEN -60 ELSE 0,/* Hardwire actual offset in monthly */
+    st.length_months                             /* and annual timeseries; see ticket #143 */
     FROM old_openmeteo.vtimeseries t
     LEFT JOIN hcore_timestep st ON 
         (t.tstep_unit=1 AND st.length_minutes=t.length AND st.length_months=0) OR
