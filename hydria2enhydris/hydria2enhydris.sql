@@ -51,6 +51,9 @@ How to do it:
    If you want to move the files to another directory instead of
    gentityfile, maybe some modifications should be done in scripts.
 
+   Then run import_hydria_curves.py script to import generic
+   data such as curves.
+
 7. Import political and  water divisions from an export file. Run then 
    this script (as the database user as which enhydris connects):
    
@@ -59,6 +62,7 @@ How to do it:
    (ensure first that the search_path is set to public)
 
 8. Run the script hydria2enhydris_fix_nominaloffset.py for additional fixes.
+
 
 NOTES
 
@@ -314,6 +318,17 @@ INSERT INTO hcore_gentityfile(gentity_id, descr, descr_alt,
 
 
 
+/* GENTITY GENERIC SECTION */
+
+--Import hq curves
+INSERT INTO hcore_gentitygenericdata(id,gentity_id, descr, descr_alt,
+    remarks, remarks_alt, data_type_id, content)
+    SELECT id, gentity+1000, COALESCE(name, ''), COALESCE(name_en, ''),
+    COALESCE(remarks, ''), COALESCE(remarks_en, ''), 1, ''
+    FROM hydria.curves WHERE terminal_subtable='hq_curves';
+
+
+
 
 
 /********************************************************************/
@@ -437,6 +452,7 @@ SELECT update_sequence('hcore_timezone_id_seq', 'hcore_timezone');
 SELECT update_sequence('hcore_unitofmeasurement_id_seq', 'hcore_unitofmeasurement');
 SELECT update_sequence('hcore_timestep_id_seq', 'hcore_timestep');
 SELECT update_sequence('hcore_timeseries_id_seq', 'hcore_timeseries');
+SELECT update_sequence('hcore_gentitygenericdata_id_seq', 'hcore_gentitygenericdata');
 
 /* Finally delete - drop migration functions */
 DROP FUNCTION update_sequence (sequence_name TEXT, table_name TEXT);
