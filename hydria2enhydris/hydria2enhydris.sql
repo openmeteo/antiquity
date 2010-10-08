@@ -8,14 +8,15 @@ Adaptation for hydria by S. Kozanis 2010-09
 
 How to do it:
 
-1. First, use pg_dump to dump the old database to a file. Make these
+1. First, use pg_dump to dump the old database to a file. Dump only
+   the 'hydro' schema not the old_hydro. Make these
    replacements:
 
     Replace            With
     ----------------   -----------------------
-    FUNCTION public.   FUNCTION hydria.
-    TABLE public.      TABLE hydria.
-    OWNER TO ?????     OWNER TO hydria
+    FUNCTION hydro.   FUNCTION hydria.
+    TABLE hydro.      TABLE hydria.
+    OWNER TO ?????    OWNER TO hydria
 
 2. Delete all REVOKE and GRANT commands at the end of the script.
 
@@ -23,9 +24,11 @@ How to do it:
 
        CREATE USER hydria;
 
+   delete CREATE SCHEMA hydro and ALTER SCHEMA hydro ... lines
+
    and further below change
 
-       SET search_path = public, pg_catalog;
+       SET search_path = hydro, pg_catalog;
 
    to
 
@@ -62,6 +65,8 @@ How to do it:
    (ensure first that the search_path is set to public)
 
 8. Run the script hydria2enhydris_fix_nominaloffset.py for additional fixes.
+
+9. Finally run import_hydria_curves.py script to import curves data.
 
 
 NOTES

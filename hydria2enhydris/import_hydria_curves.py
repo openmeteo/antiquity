@@ -26,10 +26,16 @@ while row_curves!=None:
     s = s + 'Count=%s\n\n'%count
     while row_hq_curves!=None:
         astartdate = row_hq_curves[5]
+        if not astartdate: 
+            row_hq_curves = curs_hq_curves.fetchone()
+            continue
         if astartdate is not datetime: astartdate = datetime.combine(astartdate, time())
-        s = s + 'StartDate='+astartdate.isoformat(' ')[:16]+'\n'
         aenddate = row_hq_curves[6]
+        if not aenddate:
+            row_hq_curves = curs_hq_curves.fetchone()
+            continue
         if aenddate is not datetime: aenddate = datetime.combine(aenddate, time())
+        s = s + 'StartDate='+astartdate.isoformat(' ')[:16]+'\n'
         s = s + 'EndDate='+aenddate.isoformat(' ')[:16]+'\n'
         s = s + 'StartMonth=1\nEndMonth=12\n'
         s = s + 'Extension='+('False', 'True')[row_hq_curves[3]]+'\n'
