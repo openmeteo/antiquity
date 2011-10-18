@@ -2,12 +2,12 @@
 
 import psycopg2
 from datetime import datetime, timedelta
-from timeseries import datetime_from_iso
+from pthelma.timeseries import datetime_from_iso
 
 step_minutes = {1: 10, 2: 60, 3: 1440, 7: 5}
 
-db = psycopg2.connect("host='localhost' dbname='enhydris_db' \
-    user='enhydris_user' password='mppw123'")
+db = psycopg2.connect("host='localhost' dbname='eydap-meteo' \
+    user='eydap-meteo'")
 c1 = db.cursor()
 c2 = db.cursor()
 c3 = db.cursor()
