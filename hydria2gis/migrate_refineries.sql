@@ -174,7 +174,7 @@ INSERT INTO hcore_timeseries
      time_step_id, interval_type_id, nominal_offset_minutes, 
      nominal_offset_months, actual_offset_minutes, actual_offset_months,
      hidden)
-     SELECT t.id, a.gisentity_ptr_id, var, COALESCE(unit, 1001), 
+     SELECT t.id, a.gpoint_ptr_id, var, COALESCE(unit, 1001), 
      COALESCE(name, ''), COALESCE(name_en, ''), precision, 1,
      addto_remarks(COALESCE(remarks, ''), 'Τύπος', 
          CASE WHEN ttype=1 THEN 'Πρωτογενής' ELSE 'Επεξεργασμένη' END), 
