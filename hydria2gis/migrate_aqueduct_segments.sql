@@ -30,7 +30,36 @@ DECLARE
 $$ LANGUAGE plpgsql;
 
 
---Import gentities for refinery
+/*** LOOKUP Tables section ***/
+
+INSERT INTO gis_objects_gisroughnesscoeftype(id, descr, descr_alt)
+    SELECT id, COALESCE(descr,''), COALESCE(descr_en,'') 
+    FROM oldeydap.roughness_coef_types;
+
+INSERT INTO gis_objects_gisxsectiontype(id, descr, descr_alt)
+    SELECT id, COALESCE(descr,''), COALESCE(descr_en,'') 
+    FROM oldeydap.xsection_types;
+
+INSERT INTO hcore_gentitygenericdatatype(id, descr, descr_alt,
+                                         file_extension)
+       VALUES (5, 'Καμπύλη πιεζ. φορτίου - παροχής υδραγωγείου',
+                  'Aqueduct head-discharge curve', 'txt');
+
+--Import conduits cross sections
+
+INSERT INTO gis_objects_gisxsection(id, closed, dimensions,
+                                    drawing_file, xsection_type_id)
+    SELECT id, COALESCE(closed, False), 
+            COALESCE(dimensions,''),
+            'gentityfile/imported_xsection_'||id||'.png',
+            xsection_type
+    FROM oldeydap.xsections;
+                
+UPDATE gis_objects_gisxsection SET drawing_file='' 
+    WHERE id IN (SELECT id FROM oldeydap.xsections 
+                 WHERE drawing IS NULL);
+
+--Import gentities for aqueducts
 UPDATE hcore_gentity h
     SET (water_basin_id, water_division_id, political_division_id,
          name, short_name, remarks, name_alt, short_name_alt,
@@ -40,18 +69,10 @@ UPDATE hcore_gentity h
         COALESCE(o.remarks, ''), COALESCE(o.name_en, ''), COALESCE(o.descr_en, ''),
         COALESCE(o.remarks_en, ''))
         FROM oldeydap.gentities o, gis_objects_gisentity b
-        WHERE h.id in (SELECT a.gpoint_ptr_id 
-                       FROM  gis_objects_gisrefinery a
+        WHERE h.id in (SELECT a.gline_ptr_id 
+                       FROM  gis_objects_gisaqueductline a
                        WHERE  a.gisentity_ptr_id = b.id)
-        AND o.id=b.gis_id;
-
-UPDATE hcore_gpoint h
-    SET altitude = o.alt
-    FROM oldeydap.gentities o, gis_objects_gisentity b
-    WHERE h.gentity_ptr_id in (SELECT a.gpoint_ptr_id
-                   FROM gis_objects_gisrefinery a
-                   WHERE a.gisentity_ptr_id = b.id)
-    AND o.id=b.gis_id;
+        AND o.id=b.original_gentity_id;
 
 --Set prefecture from gentities_real to the appropriate
 --political_division property
@@ -77,20 +98,20 @@ UPDATE hcore_gentity h
             WHEN g.prefecture=93 THEN 450 WHEN g.prefecture=94 THEN 449
         END
     FROM oldeydap.gentities_real g, gis_objects_gisentity b
-    WHERE h.id in (SELECT a.gpoint_ptr_id 
-                   FROM  gis_objects_gisrefinery a
+    WHERE h.id in (SELECT a.gline_ptr_id 
+                   FROM  gis_objects_gisaqueductline a
                    WHERE  a.gisentity_ptr_id = b.id)
-    AND g.id=b.gis_id;
+    AND g.id=b.original_gentity_id;
 
 --Water basins from gpoints to gentities
 UPDATE hcore_gentity h
     SET water_basin_id = p.basin+1000
     FROM oldeydap.gentities_real g, gis_objects_gisentity b,
          oldeydap.gpoints p
-    WHERE h.id in (SELECT a.gpoint_ptr_id 
-                   FROM  gis_objects_gisrefinery a
+    WHERE h.id in (SELECT a.gline_ptr_id 
+                   FROM  gis_objects_gisaqueductline a
                    WHERE  a.gisentity_ptr_id = b.id)
-    AND g.id=b.gis_id AND p.id=g.id;
+    AND g.id=b.original_gentity_id AND p.id=g.id;
 
 --gentities_real location is imported in the gentity remarks
 UPDATE hcore_gentity h
@@ -98,10 +119,10 @@ UPDATE hcore_gentity h
         (addto_remarks(h.remarks, 'Τοποθεσία', g.location),
         addto_remarks(h.remarks_alt, 'Location', g.location_en))
     FROM oldeydap.gentities_real g, gis_objects_gisentity b
-    WHERE h.id in (SELECT a.gpoint_ptr_id 
-                   FROM  gis_objects_gisrefinery a
+    WHERE h.id in (SELECT a.gline_ptr_id 
+                   FROM  gis_objects_gisaqueductline a
                    WHERE  a.gisentity_ptr_id = b.id)
-    AND g.id=b.gis_id;
+    AND g.id=b.original_gentity_id;
 
 --gentities_real municipality is imported in the gentity remarks
 UPDATE hcore_gentity h
@@ -109,11 +130,18 @@ UPDATE hcore_gentity h
         (addto_remarks(h.remarks, 'Δήμος', g.municipality),
         addto_remarks(h.remarks_alt, 'Municipality', g.municipality_en))
     FROM oldeydap.gentities_real g, gis_objects_gisentity b
-    WHERE h.id in (SELECT a.gpoint_ptr_id 
-                   FROM  gis_objects_gisrefinery a
+    WHERE h.id in (SELECT a.gline_ptr_id 
+                   FROM  gis_objects_gisaqueductline a
                    WHERE  a.gisentity_ptr_id = b.id)
-    AND g.id=b.gis_id;
+    AND g.id=b.original_gentity_id;
 
+UPDATE hcore_gline h
+    SET length = g.length
+    FROM oldeydap.glines g, gis_objects_gisentity b
+    WHERE h.gentity_ptr_id in (SELECT a.gline_ptr_id 
+                   FROM  gis_objects_gisaqueductline a
+                   WHERE  a.gisentity_ptr_id = b.id)
+    AND g.id=b.original_gentity_id;
 
 /* GENTITY FILES SECTION */
 
@@ -134,34 +162,54 @@ INSERT INTO hcore_gentityfile(gentity_id, descr, descr_alt,
         WHEN ftype=9 THEN 'gif'
     END
     FROM gis_objects_gisentity b,
-         gis_objects_gisrefinery a,
+         gis_objects_gisaqueductline a,
          oldeydap.gentities_multimedia m
-    WHERE m.id=b.gis_id AND a.gisentity_ptr_id = b.id;
+    WHERE m.id=b.original_gentity_id AND a.gisentity_ptr_id = b.id;
 
 
-/* SPECIAL REFINERY FIELDS */
+/* SPECIAL AQUEDUCT FIELDS */
 
 
-UPDATE gis_objects_gisrefinery r
-    SET (capacity, peak_capacity, storage, overflow_stage,
-         outlet_level)=
-        (t.capacity, t.peak_capacity, t.storage, t.overflow_stage,
-         t.outlet_level)
-        FROM oldeydap.treatment_plants t,
-             gis_objects_gisentity a
-        WHERE r.gisentity_ptr_id=a.id
-        AND a.gtype_id=3
-        AND t.id=a.gis_id;
+UPDATE gis_objects_gisaqueductline r
+    SET (group_id, xsection_id, area, width, depth, slope,
+         roughness_coef, roughness_coef_type_id, bank_slope,
+         leakage_coef, measure_discharge, measure_stage,
+         start_position, end_position, duct_segment_type_id,
+         discharge_capacity, duct_flow_type_id, duct_status_id,
+         repers, repers_en, pipe_mat_id, alt1, alt2)=
+        (c.parent, c.xsection, c.area, c.width, c.depth, c.slope,
+         c.roughness_coef, c.roughness_coef_type, c.bank_slope,
+         t.leakage_coef, COALESCE(c.measure_discharge, False),
+                              COALESCE(c.measure_stage, False),
+         c.start_position, c.end_position, t.duct_segment_type,
+         t.discharge_capacity, t.duct_flow_type, t.duct_status,
+         COALESCE(t.repers, ''), COALESCE(t.repers_en, ''),
+               t.pipe_mat, g.alt, l.alt2)
+    FROM oldeydap.aqueducts t,
+         oldeydap.conduits c,
+         oldeydap.glines l,
+         oldeydap.gentities g,
+         gis_objects_gisentity a
+    WHERE r.gisentity_ptr_id=a.id
+        AND a.gtype_id=6
+        AND t.id=a.original_gentity_id
+        AND t.id=c.id
+        AND c.id=l.id
+        AND g.id=l.id;
+
 
 /* GENTITY GENERIC SECTION */
 
---Import hq curves
---INSERT INTO hcore_gentitygenericdata(id,gentity_id, descr, descr_alt,
---    remarks, remarks_alt, data_type_id, content)
---    SELECT id, gentity+1000, COALESCE(name, ''), COALESCE(name_en, ''),
---    COALESCE(remarks, ''), COALESCE(remarks_en, ''), 1, ''
---    FROM hydria.curves WHERE terminal_subtable='hq_curves';
-
+INSERT INTO hcore_gentitygenericdata(id, gentity_id, descr, descr_alt,
+    remarks, remarks_alt, data_type_id, content)
+    SELECT c.id, a.gisentity_ptr_id, COALESCE(c.name, ''), 
+           COALESCE(c.name_en, ''), COALESCE(c.remarks, ''), 
+           COALESCE(c.remarks_en, ''), 5, ''
+    FROM gis_objects_gisentity b,
+         gis_objects_gisaqueductline a,
+         oldeydap.curves c
+    WHERE c.gentity=b.original_gentity_id AND a.gisentity_ptr_id = b.id
+          AND c.terminal_subtable='duct_discharge_capacity';
 
 
 /********************************************************************/
@@ -181,11 +229,11 @@ INSERT INTO hcore_timeseries
      time_step_id, interval_type_id, nominal_offset_minutes, 
      nominal_offset_months, actual_offset_minutes, actual_offset_months,
      hidden)
-     SELECT t.id, a.gpoint_ptr_id, var, COALESCE(unit, 1001), 
+     SELECT t.id, a.gline_ptr_id, var, COALESCE(unit, 1001), 
      COALESCE(name, ''), COALESCE(name_en, ''), precision, 1,
-     addto_remarks(COALESCE(remarks, ''), 'Τύπος', 
+     addto_remarks(COALESCE(t.remarks, ''), 'Τύπος', 
          CASE WHEN ttype=1 THEN 'Πρωτογενής' ELSE 'Επεξεργασμένη' END), 
-     addto_remarks(COALESCE(remarks_en, ''), 'Type', 
+     addto_remarks(COALESCE(t.remarks_en, ''), 'Type', 
          CASE WHEN ttype=1 THEN 'Raw data' ELSE 'Processed data' END), 
      instrument, 
      CASE WHEN tstep=6 THEN NULL WHEN tstep=7 THEN 6 ELSE tstep END,     
@@ -200,10 +248,10 @@ INSERT INTO hcore_timeseries
      CASE WHEN tstep=4 THEN 1 WHEN tstep=5 THEN 12 ELSE 0 END,
      False
      FROM oldeydap.timeseries t, gis_objects_gisentity b,
-          gis_objects_gisrefinery a
-     WHERE t.gentity = b.gis_id 
+          gis_objects_gisaqueductline a
+     WHERE t.gentity = b.original_gentity_id 
            AND a.gisentity_ptr_id=b.id
-           AND b.gtype_id=3
+           AND b.gtype_id=6
            AND t.synth=False AND ttype<3;
 
 /* timeseries data */
@@ -220,6 +268,16 @@ INSERT INTO ts_records (id, top, middle, bottom)
 /* Update sequences */
 SELECT update_sequence('hcore_gentityfile_id_seq', 'hcore_gentityfile');
 SELECT update_sequence('hcore_timeseries_id_seq', 'hcore_timeseries');
+SELECT update_sequence('gis_objects_gisroughnesscoeftype_id_seq',
+                       'gis_objects_gisroughnesscoeftype');
+SELECT update_sequence('gis_objects_gisxsectiontype_id_seq',
+                       'gis_objects_gisxsectiontype');
+SELECT update_sequence('hcore_gentitygenericdatatype_id_seq',
+                       'hcore_gentitygenericdatatype');
+SELECT update_sequence('gis_objects_gisxsection_id_seq',
+                       'gis_objects_gisxsection');
+SELECT update_sequence('hcore_gentitygenericdata_id_seq',
+                       'hcore_gentitygenericdata');
 
 /* Finally delete - drop migration functions */
 DROP FUNCTION update_sequence (sequence_name TEXT, table_name TEXT);

@@ -29,8 +29,68 @@ DECLARE
     END;
 $$ LANGUAGE plpgsql;
 
+/*** LOOKUP Tables section ***/
 
---Import gentities for refinery
+/* Warning!! Only migrating borehole lookups, a script migrating
+   springs should be run before this one */
+
+INSERT INTO gis_objects_gisboreholepmetertype(id, descr, descr_alt)
+    SELECT id, COALESCE(descr,''), COALESCE(descr_en,'') 
+    FROM oldeydap.pmeter_types;
+
+INSERT INTO gis_objects_gisboreholedrilltype(id, descr, descr_alt)
+    SELECT id, COALESCE(descr,''), COALESCE(descr_en,'') 
+    FROM oldeydap.drill_types;
+
+INSERT INTO gis_objects_gisboreholepipemat(id, descr, descr_alt)
+    SELECT id, COALESCE(descr,''), COALESCE(descr_en,'') 
+    FROM oldeydap.pipe_mats;
+
+--Insert Boreholes not included in the GIS
+
+/* Should update the sequence before inserting, because django
+   behavious is to set gis_objects_gisentity the same as the
+   hcore_gentity id */
+
+SELECT update_sequence('gis_objects_gisentity_id_seq', 
+                       'gis_objects_gisentity');
+
+INSERT INTO gis_objects_gisentity(gtype_id, gis_id, 
+                                  original_gentity_id)    
+    SELECT 1, o.id, Null
+    FROM oldeydap.boreholes o
+    WHERE o.id not in (SELECT gis_id FROM gis_objects_gisentity
+                              WHERE gtype_id=1);
+
+INSERT INTO gis_objects_gisborehole(gisboreholespring_ptr_id,
+                                    gisentity_ptr_id, "group",
+                                    has_pmeter)
+    SELECT nextval('hcore_gentity_id_seq'), e.id, '', False
+    FROM gis_objects_gisentity e
+    WHERE e.id not in (SELECT gisentity_ptr_id FROM
+                              gis_objects_gisborehole) AND
+          e.gtype_id=1;
+
+INSERT INTO gis_objects_gisboreholespring(gpoint_ptr_id)
+    SELECT b.gisboreholespring_ptr_id
+    FROM gis_objects_gisborehole b
+    WHERE b.gisboreholespring_ptr_id not in
+          (SELECT gpoint_ptr_id FROM gis_objects_gisboreholespring);
+
+INSERT INTO hcore_gpoint(gentity_ptr_id, approximate)
+    SELECT s.gpoint_ptr_id, False
+    FROM gis_objects_gisboreholespring s
+    WHERE s.gpoint_ptr_id not in
+          (SELECT gentity_ptr_id FROM hcore_gpoint);
+
+INSERT INTO hcore_gentity(id, name, short_name, remarks, name_alt,
+                          short_name_alt, remarks_alt)
+    SELECT p.gentity_ptr_id, '', '', '', '', '', ''
+    FROM hcore_gpoint p
+    WHERE p.gentity_ptr_id not in
+          (SELECT id FROM hcore_gentity);
+
+--Import gentities for borehole 
 UPDATE hcore_gentity h
     SET (water_basin_id, water_division_id, political_division_id,
          name, short_name, remarks, name_alt, short_name_alt,
@@ -40,16 +100,16 @@ UPDATE hcore_gentity h
         COALESCE(o.remarks, ''), COALESCE(o.name_en, ''), COALESCE(o.descr_en, ''),
         COALESCE(o.remarks_en, ''))
         FROM oldeydap.gentities o, gis_objects_gisentity b
-        WHERE h.id in (SELECT a.gpoint_ptr_id 
-                       FROM  gis_objects_gisrefinery a
+        WHERE h.id in (SELECT a.gisboreholespring_ptr_id 
+                       FROM  gis_objects_gisborehole a
                        WHERE  a.gisentity_ptr_id = b.id)
         AND o.id=b.gis_id;
 
 UPDATE hcore_gpoint h
     SET altitude = o.alt
     FROM oldeydap.gentities o, gis_objects_gisentity b
-    WHERE h.gentity_ptr_id in (SELECT a.gpoint_ptr_id
-                   FROM gis_objects_gisrefinery a
+    WHERE h.gentity_ptr_id in (SELECT a.gisboreholespring_ptr_id
+                   FROM gis_objects_gisborehole a
                    WHERE a.gisentity_ptr_id = b.id)
     AND o.id=b.gis_id;
 
@@ -77,8 +137,8 @@ UPDATE hcore_gentity h
             WHEN g.prefecture=93 THEN 450 WHEN g.prefecture=94 THEN 449
         END
     FROM oldeydap.gentities_real g, gis_objects_gisentity b
-    WHERE h.id in (SELECT a.gpoint_ptr_id 
-                   FROM  gis_objects_gisrefinery a
+    WHERE h.id in (SELECT a.gisboreholespring_ptr_id 
+                   FROM  gis_objects_gisborehole a
                    WHERE  a.gisentity_ptr_id = b.id)
     AND g.id=b.gis_id;
 
@@ -87,8 +147,8 @@ UPDATE hcore_gentity h
     SET water_basin_id = p.basin+1000
     FROM oldeydap.gentities_real g, gis_objects_gisentity b,
          oldeydap.gpoints p
-    WHERE h.id in (SELECT a.gpoint_ptr_id 
-                   FROM  gis_objects_gisrefinery a
+    WHERE h.id in (SELECT a.gisboreholespring_ptr_id 
+                   FROM  gis_objects_gisborehole a
                    WHERE  a.gisentity_ptr_id = b.id)
     AND g.id=b.gis_id AND p.id=g.id;
 
@@ -98,8 +158,8 @@ UPDATE hcore_gentity h
         (addto_remarks(h.remarks, 'Τοποθεσία', g.location),
         addto_remarks(h.remarks_alt, 'Location', g.location_en))
     FROM oldeydap.gentities_real g, gis_objects_gisentity b
-    WHERE h.id in (SELECT a.gpoint_ptr_id 
-                   FROM  gis_objects_gisrefinery a
+    WHERE h.id in (SELECT a.gisboreholespring_ptr_id 
+                   FROM  gis_objects_gisborehole a
                    WHERE  a.gisentity_ptr_id = b.id)
     AND g.id=b.gis_id;
 
@@ -109,8 +169,8 @@ UPDATE hcore_gentity h
         (addto_remarks(h.remarks, 'Δήμος', g.municipality),
         addto_remarks(h.remarks_alt, 'Municipality', g.municipality_en))
     FROM oldeydap.gentities_real g, gis_objects_gisentity b
-    WHERE h.id in (SELECT a.gpoint_ptr_id 
-                   FROM  gis_objects_gisrefinery a
+    WHERE h.id in (SELECT a.gisboreholespring_ptr_id 
+                   FROM  gis_objects_gisborehole a
                    WHERE  a.gisentity_ptr_id = b.id)
     AND g.id=b.gis_id;
 
@@ -134,23 +194,43 @@ INSERT INTO hcore_gentityfile(gentity_id, descr, descr_alt,
         WHEN ftype=9 THEN 'gif'
     END
     FROM gis_objects_gisentity b,
-         gis_objects_gisrefinery a,
+         gis_objects_gisborehole a,
          oldeydap.gentities_multimedia m
     WHERE m.id=b.gis_id AND a.gisentity_ptr_id = b.id;
 
 
-/* SPECIAL REFINERY FIELDS */
+/* SPECIAL SPRING FIELDS */
 
 
-UPDATE gis_objects_gisrefinery r
-    SET (capacity, peak_capacity, storage, overflow_stage,
-         outlet_level)=
-        (t.capacity, t.peak_capacity, t.storage, t.overflow_stage,
-         t.outlet_level)
-        FROM oldeydap.treatment_plants t,
+UPDATE gis_objects_gisboreholespring r
+    SET (water_use_id, water_user_id, land_use_id, continuous_flow)=
+        (t.water_use, t.water_user, t.land_use, t.continuous_flow)
+        FROM oldeydap.boreholes_springs t,
+             gis_objects_gisentity a,
+             gis_objects_gisborehole s
+        WHERE s.gisentity_ptr_id=a.id
+        AND r.gpoint_ptr_id = s.gisboreholespring_ptr_id
+        AND a.gtype_id=1
+        AND t.id=a.gis_id;
+
+UPDATE gis_objects_gisborehole r
+    SET ( has_pmeter, pmeter_type_id, pmeter_length,
+          pmeter_diameter, borehole_depth, pipe_depth,
+          water_depth, value_t, value_s, value_b, value_k, threshold_a,
+          threshold_b, continuous_stage, test_flow, test_stage,
+          begin_works, end_works, drill_type_id, pipe_mat_id,
+          pump_discharge, pump_ratio)=
+        ( COALESCE(t.has_pmeter, False), t.pmeter_type, t.pmeter_length,
+          t.pmeter_diameter, t.borehole_depth, t.pipe_depth,
+          t.water_depth, t.value_t, t.value_s, t.value_b, 
+          t.value_k, t.threshold_a,
+          t.threshold_b, t.continuous_stage, t.test_flow, t.test_stage,
+          t.begin_works, t.end_works, t.drill_type, t.pipe_mat,
+          t.pump_discharge, t.pump_ratio)
+        FROM oldeydap.boreholes t,
              gis_objects_gisentity a
         WHERE r.gisentity_ptr_id=a.id
-        AND a.gtype_id=3
+        AND a.gtype_id=1
         AND t.id=a.gis_id;
 
 /* GENTITY GENERIC SECTION */
@@ -181,7 +261,7 @@ INSERT INTO hcore_timeseries
      time_step_id, interval_type_id, nominal_offset_minutes, 
      nominal_offset_months, actual_offset_minutes, actual_offset_months,
      hidden)
-     SELECT t.id, a.gpoint_ptr_id, var, COALESCE(unit, 1001), 
+     SELECT t.id, a.gisboreholespring_ptr_id, var, COALESCE(unit, 1001), 
      COALESCE(name, ''), COALESCE(name_en, ''), precision, 1,
      addto_remarks(COALESCE(remarks, ''), 'Τύπος', 
          CASE WHEN ttype=1 THEN 'Πρωτογενής' ELSE 'Επεξεργασμένη' END), 
@@ -200,10 +280,10 @@ INSERT INTO hcore_timeseries
      CASE WHEN tstep=4 THEN 1 WHEN tstep=5 THEN 12 ELSE 0 END,
      False
      FROM oldeydap.timeseries t, gis_objects_gisentity b,
-          gis_objects_gisrefinery a
+          gis_objects_gisborehole a
      WHERE t.gentity = b.gis_id 
            AND a.gisentity_ptr_id=b.id
-           AND b.gtype_id=3
+           AND b.gtype_id=1
            AND t.synth=False AND ttype<3;
 
 /* timeseries data */
@@ -220,6 +300,15 @@ INSERT INTO ts_records (id, top, middle, bottom)
 /* Update sequences */
 SELECT update_sequence('hcore_gentityfile_id_seq', 'hcore_gentityfile');
 SELECT update_sequence('hcore_timeseries_id_seq', 'hcore_timeseries');
+SELECT update_sequence('hcore_gentity_id_seq', 'hcore_gentity');
+SELECT update_sequence('gis_objects_gisentity_id_seq', 
+                       'gis_objects_gisentity');
+SELECT update_sequence('gis_objects_gisboreholepmetertype_id_seq', 
+                       'gis_objects_gisboreholepmetertype');
+SELECT update_sequence('gis_objects_gisboreholedrilltype_id_seq', 
+                       'gis_objects_gisboreholedrilltype');
+SELECT update_sequence('gis_objects_gisboreholepipemat_id_seq', 
+                       'gis_objects_gisboreholepipemat');
 
 /* Finally delete - drop migration functions */
 DROP FUNCTION update_sequence (sequence_name TEXT, table_name TEXT);

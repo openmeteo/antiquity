@@ -30,7 +30,28 @@ DECLARE
 $$ LANGUAGE plpgsql;
 
 
---Import gentities for refinery
+/* WARNING, importing lookup tables valid also for Aqueducta segmentss,
+   so this script should be run before Aqueducts import script */
+/*** LOOKUP Tables section ***/
+
+INSERT INTO gis_objects_gisductsegmenttype(id, descr, descr_alt)
+    SELECT id, COALESCE(descr,''), COALESCE(descr_en,'') 
+    FROM oldeydap.duct_segment_types;
+
+INSERT INTO gis_objects_gisductflowtype(id, descr, descr_alt)
+    SELECT id, COALESCE(descr,''), COALESCE(descr_en,'') 
+    FROM oldeydap.duct_flow_types;
+
+INSERT INTO gis_objects_gisductstatustype(id, descr, descr_alt)
+    SELECT id, COALESCE(descr,''), COALESCE(descr_en,'') 
+    FROM oldeydap.duct_status_types;
+
+INSERT INTO gis_objects_gisaqueductgroup(id, descr, descr_alt)
+    SELECT g.id, COALESCE(g.name,''), COALESCE(g.name_en,'')
+    FROM oldeydap.gentities g, oldeydap.conduits c
+    WHERE g.id=c.id and c.parent IS NULL;
+
+--Import gentities for aqueduct node 
 UPDATE hcore_gentity h
     SET (water_basin_id, water_division_id, political_division_id,
          name, short_name, remarks, name_alt, short_name_alt,
@@ -41,7 +62,7 @@ UPDATE hcore_gentity h
         COALESCE(o.remarks_en, ''))
         FROM oldeydap.gentities o, gis_objects_gisentity b
         WHERE h.id in (SELECT a.gpoint_ptr_id 
-                       FROM  gis_objects_gisrefinery a
+                       FROM  gis_objects_gisaqueductnode a
                        WHERE  a.gisentity_ptr_id = b.id)
         AND o.id=b.gis_id;
 
@@ -49,7 +70,7 @@ UPDATE hcore_gpoint h
     SET altitude = o.alt
     FROM oldeydap.gentities o, gis_objects_gisentity b
     WHERE h.gentity_ptr_id in (SELECT a.gpoint_ptr_id
-                   FROM gis_objects_gisrefinery a
+                   FROM gis_objects_gisaqueductnode a
                    WHERE a.gisentity_ptr_id = b.id)
     AND o.id=b.gis_id;
 
@@ -78,7 +99,7 @@ UPDATE hcore_gentity h
         END
     FROM oldeydap.gentities_real g, gis_objects_gisentity b
     WHERE h.id in (SELECT a.gpoint_ptr_id 
-                   FROM  gis_objects_gisrefinery a
+                   FROM  gis_objects_gisaqueductnode a
                    WHERE  a.gisentity_ptr_id = b.id)
     AND g.id=b.gis_id;
 
@@ -88,7 +109,7 @@ UPDATE hcore_gentity h
     FROM oldeydap.gentities_real g, gis_objects_gisentity b,
          oldeydap.gpoints p
     WHERE h.id in (SELECT a.gpoint_ptr_id 
-                   FROM  gis_objects_gisrefinery a
+                   FROM  gis_objects_gisaqueductnode a
                    WHERE  a.gisentity_ptr_id = b.id)
     AND g.id=b.gis_id AND p.id=g.id;
 
@@ -99,7 +120,7 @@ UPDATE hcore_gentity h
         addto_remarks(h.remarks_alt, 'Location', g.location_en))
     FROM oldeydap.gentities_real g, gis_objects_gisentity b
     WHERE h.id in (SELECT a.gpoint_ptr_id 
-                   FROM  gis_objects_gisrefinery a
+                   FROM  gis_objects_gisaqueductnode a
                    WHERE  a.gisentity_ptr_id = b.id)
     AND g.id=b.gis_id;
 
@@ -110,7 +131,7 @@ UPDATE hcore_gentity h
         addto_remarks(h.remarks_alt, 'Municipality', g.municipality_en))
     FROM oldeydap.gentities_real g, gis_objects_gisentity b
     WHERE h.id in (SELECT a.gpoint_ptr_id 
-                   FROM  gis_objects_gisrefinery a
+                   FROM  gis_objects_gisaqueductnode a
                    WHERE  a.gisentity_ptr_id = b.id)
     AND g.id=b.gis_id;
 
@@ -134,24 +155,30 @@ INSERT INTO hcore_gentityfile(gentity_id, descr, descr_alt,
         WHEN ftype=9 THEN 'gif'
     END
     FROM gis_objects_gisentity b,
-         gis_objects_gisrefinery a,
+         gis_objects_gisaqueductnode a,
          oldeydap.gentities_multimedia m
     WHERE m.id=b.gis_id AND a.gisentity_ptr_id = b.id;
 
 
-/* SPECIAL REFINERY FIELDS */
+/* SPECIAL AQUEDUCT NODES FIELDS */
 
 
-UPDATE gis_objects_gisrefinery r
-    SET (capacity, peak_capacity, storage, overflow_stage,
-         outlet_level)=
-        (t.capacity, t.peak_capacity, t.storage, t.overflow_stage,
-         t.outlet_level)
-        FROM oldeydap.treatment_plants t,
-             gis_objects_gisentity a
-        WHERE r.gisentity_ptr_id=a.id
-        AND a.gtype_id=3
-        AND t.id=a.gis_id;
+UPDATE gis_objects_gisaqueductnode r
+    SET (measure_discharge, measure_stage, start_position,
+         end_position, duct_segment_type_id, duct_status_id,
+         repers, repers_en, group_id)=
+        (COALESCE(c.measure_discharge, False), 
+         COALESCE(c.measure_stage, False), c.start_position,
+         c.end_position, t.duct_segment_type, t.duct_status,
+         COALESCE(t.repers,''), COALESCE(t.repers_en,''), c.parent)
+    FROM oldeydap.aqueducts t,
+         oldeydap.conduits c,
+         gis_objects_gisentity a
+    WHERE r.gisentity_ptr_id=a.id
+        AND a.gtype_id=5
+        AND t.id=a.gis_id
+        AND t.id=c.id;
+
 
 /* GENTITY GENERIC SECTION */
 
@@ -200,10 +227,10 @@ INSERT INTO hcore_timeseries
      CASE WHEN tstep=4 THEN 1 WHEN tstep=5 THEN 12 ELSE 0 END,
      False
      FROM oldeydap.timeseries t, gis_objects_gisentity b,
-          gis_objects_gisrefinery a
+          gis_objects_gisaqueductnode a
      WHERE t.gentity = b.gis_id 
            AND a.gisentity_ptr_id=b.id
-           AND b.gtype_id=3
+           AND b.gtype_id=5
            AND t.synth=False AND ttype<3;
 
 /* timeseries data */
@@ -220,6 +247,14 @@ INSERT INTO ts_records (id, top, middle, bottom)
 /* Update sequences */
 SELECT update_sequence('hcore_gentityfile_id_seq', 'hcore_gentityfile');
 SELECT update_sequence('hcore_timeseries_id_seq', 'hcore_timeseries');
+SELECT update_sequence('gis_objects_gisductsegmenttype_id_seq',
+                       'gis_objects_gisductsegmenttype');
+SELECT update_sequence('gis_objects_gisductflowtype_id_seq',
+                       'gis_objects_gisductflowtype');
+SELECT update_sequence('gis_objects_gisductstatustype_id_seq',
+                       'gis_objects_gisductstatustype');
+SELECT update_sequence('gis_objects_gisaqueductgroup_id_seq',
+                       'gis_objects_gisaqueductgroup');
 
 /* Finally delete - drop migration functions */
 DROP FUNCTION update_sequence (sequence_name TEXT, table_name TEXT);
