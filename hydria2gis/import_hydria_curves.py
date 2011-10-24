@@ -9,6 +9,7 @@ curs_curves = db.cursor()
 curs_hsvb = db.cursor()
 curs_leak = db.cursor()
 curs_spill = db.cursor()
+curs_duct_discharge = db.cursor()
 curs_update = db.cursor()
 curs_curves.execute("SET search_path TO oldeydap")
 
@@ -64,6 +65,24 @@ while row_curves!=None:
     curs_update.execute("UPDATE public.hcore_gentitygenericdata SET \
                          content=%s WHERE id=%s", (outstr, id))
     print "Imported reservoir spill h-q with id=%d"%id
+    row_curves = curs_curves.fetchone()
+
+curs_curves.execute("SELECT id FROM curves WHERE terminal_subtable='duct_discharge_capacity'")
+row_curves = curs_curves.fetchone()
+while row_curves!=None:
+    id = row_curves[0]
+    curs_duct_discharge.execute("SELECT head, discharge "
+                                "FROM duct_discharge_capacity WHERE id=%s "
+                                "ORDER BY head", (id, ))
+    row_duct = curs_duct_discharge.fetchone()
+    outstr = ''
+    while row_duct!=None:
+        outstr+= '%f,%f'%row_duct
+        row_duct = curs_duct_discharge.fetchone()
+        if row_duct!=None: outstr+='\n'
+    curs_update.execute("UPDATE public.hcore_gentitygenericdata SET \
+                         content=%s WHERE id=%s", (outstr, id))
+    print "Imported duct discharge h-q with id=%d"%id
     row_curves = curs_curves.fetchone()
 
 db.rollback()
