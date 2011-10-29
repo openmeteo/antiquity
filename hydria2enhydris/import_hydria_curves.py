@@ -3,19 +3,22 @@
 import psycopg2
 from datetime import datetime, time
 
-db = psycopg2.connect("host='localhost' dbname='enhydris_db' \
-    user='enhydris_user' password='mppw123'")
+db = psycopg2.connect("host='localhost' dbname='eydap-meteo' \
+    user='eydap-meteo'")
 curs_curves = db.cursor()
 curs_hq_curves = db.cursor()
 curs_hq_points = db.cursor()
 curs_update = db.cursor()
-curs_curves.execute("SET search_path TO hydria")
+curs_curves.execute("SET search_path TO oldeydap")
 
 curs_curves.execute("SELECT id FROM curves WHERE terminal_subtable='hq_curves'")
 row_curves = curs_curves.fetchone()
 while row_curves!=None:
     id = row_curves[0]
-    curs_hq_curves.execute("SELECT COUNT(id) FROM hq_curves WHERE id=%s", (id,)) 
+    curs_hq_curves.execute("SELECT COUNT(c.id) FROM hq_curves c "
+                           "WHERE id=%s "
+                           "AND c.num IN (SELECT curve_num FROM "
+                           "hq_points WHERE id=c.id)"%(id,)) 
     row_hq_curves = curs_hq_curves.fetchone()
     count = row_hq_curves[0]
     curs_hq_curves.execute("SELECT id, num, log, ext, coffset, \
@@ -51,6 +54,7 @@ while row_curves!=None:
         while row_hq_points!=None:
             s = s + '%f,%f'%row_hq_points+'\n'
             row_hq_points = curs_hq_points.fetchone()
+        s+='\n'
         row_hq_curves = curs_hq_curves.fetchone()
     curs_update.execute("UPDATE public.hcore_gentitygenericdata SET \
                          content=%s WHERE id=%s", (s, id))
