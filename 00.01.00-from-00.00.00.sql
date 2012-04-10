@@ -240,7 +240,7 @@ INSERT INTO hcore_gpoint(gentity_ptr_id, abscissa, ordinate, srid, approximate,
     to_number(lamda, '99') + to_number(lamda, '   99')/60
         + CASE WHEN char_length(lamda)>5 THEN to_number(lamda, '      99')/3600 ELSE 0 END
         + CASE WHEN char_length(trim(' ' from lamda))>8 THEN to_number(lamda, '         99')/360000 ELSE 0 END,
-    7030, False, altitude, NULL
+    4326, False, altitude, NULL
     FROM old_hydro.stations
     WHERE srvid = :service_id AND (x=0 OR x is null) AND phi<>'' AND phi<>'00 00 00';
 INSERT INTO hcore_gpoint(gentity_ptr_id, abscissa, ordinate, srid, approximate,
