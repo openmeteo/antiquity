@@ -38,7 +38,7 @@ from django.core.management import setup_environ
 from django.core.files import File
 import settings
 setup_environ(settings)
-from hcore import models
+from enhydris.hcore import models
 
 if models.GentityFile.objects.all().count():
     sys.stderr.write('Images apparently have already been imported; skipping\n')
