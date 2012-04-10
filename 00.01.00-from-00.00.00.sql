@@ -105,7 +105,7 @@ INSERT INTO hcore_garea(gentity_ptr_id)
 INSERT INTO hcore_waterbasin(garea_ptr_id, water_division_id, parent_id)
     SELECT 1400+sb.wsbid, 500+sb.wtrid, 1000+b.wbid
     FROM old_hydro.sub_basins sb, old_hydro.basins b
-    WHERE sb.wsbid>0 AND sb.wbcode=b.wbcode;
+    WHERE sb.wsbid>0 AND sb.wbcode=b.wbcode AND sb.wbcode>0;
 INSERT INTO hcore_gentityaltcode(gentity_id, type_id, value)
     SELECT 1400+wsbid, 1, wsbcode FROM old_hydro.sub_basins WHERE wsbid>0;
 
