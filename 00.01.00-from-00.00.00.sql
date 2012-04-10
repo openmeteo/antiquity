@@ -134,8 +134,10 @@ INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 12);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 13);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 14);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 15);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 52);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 54);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 55);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (3, 106);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 10);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 18);
@@ -154,8 +156,11 @@ INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 32);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 34);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 35);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 36);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 37);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 39);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 56);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (4, 57);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (5, 44);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (5, 46);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (6, 48);
@@ -182,6 +187,8 @@ INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (14, 45);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (14, 47);
 INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (14, 62);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (14, 102);
+INSERT INTO hcore_unitofmeasurement_variables (unitofmeasurement_id, variable_id) VALUES (14, 111);
 INSERT INTO hcore_timeseries
     (id, gentity_id, variable_id, unit_of_measurement_id, precision, name,
     time_zone_id, remarks, instrument_id, time_step_id, nominal_offset_minutes,
