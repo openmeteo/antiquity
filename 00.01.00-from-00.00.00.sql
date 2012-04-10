@@ -224,7 +224,7 @@ INSERT INTO hcore_gentity(id, water_basin_id, water_division_id,
     CASE WHEN wbid>0 THEN 1000+wbid ELSE NULL END,
     CASE WHEN wtrid>0 THEN 500+wtrid ELSE NULL END,
     CASE WHEN sttid>0 THEN 400+sttid ELSE NULL END,
-    stationname, '', COALESCE(comments, ''), '', '', ''
+    COALESCE(stationname, 'Anonymous'), '', COALESCE(comments, ''), '', '', ''
     FROM old_hydro.stations WHERE srvid = :service_id;
 INSERT INTO hcore_gpoint(gentity_ptr_id, abscissa, ordinate, srid, approximate,
     altitude, asrid)
